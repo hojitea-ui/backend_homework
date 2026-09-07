@@ -14,7 +14,10 @@ primary_region = "nrt"          # 도쿄. 한국에서 가장 가깝다
 [http_service]
   internal_port = 3000
   force_https = true
-  auto_stop_machines = "stop"
+  # suspend는 메모리 상태를 그대로 복원해서 stop보다 훨씬 빨리 깨어난다.
+  # 요금은 동일하다 — 멈춘 머신도 정지된 머신도 CPU/RAM을 받지 않는다.
+  # 조건(메모리 2GiB 이하 등)을 못 맞추면 Fly가 알아서 stop으로 떨어뜨린다.
+  auto_stop_machines = "suspend"
   auto_start_machines = true
   min_machines_running = 0
 
