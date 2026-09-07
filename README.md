@@ -2,7 +2,9 @@
 
 기상 후 출석체크 앱. 목표 시간 안에 출석하면 연속 기록(스트릭)이 쌓이고, 닉네임별로 최고기록 랭킹을 볼 수 있습니다.
 
-## 실행
+**배포된 앱: https://haru-checkin.fly.dev**
+
+## 로컬 실행
 
 ```bash
 npm install
@@ -291,6 +293,8 @@ Fly 볼륨은 머신 한 대에만 붙습니다. 2대로 늘리면 두 번째 �
 `--allow-scripts` CLI 플래그는 프로젝트 설치에서 거부되므로(`EALLOWSCRIPTS`) `package.json`에 적는 것만 방법입니다. 배열이 아니라 객체 형식만 인식됩니다.
 
 `engines`를 추가하면 `package-lock.json`도 함께 갱신해야 합니다. 락파일이 루트의 `engines`까지 기록하기 때문에, 안 맞으면 빌드에서 `npm ci`가 "not in sync"로 실패합니다.
+
+배포된 앱은 https://haru-checkin.fly.dev 입니다 (도쿄 리전, 머신 1대 + 1GB 볼륨).
 
 ### 배포 순서
 
