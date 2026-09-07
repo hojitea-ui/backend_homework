@@ -1,4 +1,4 @@
-# app 이름은 flyctl launch가 채운다 (전역 유일해야 함)
+app = "haru-checkin"
 primary_region = "nrt"          # 도쿄. 한국에서 가장 가깝다
 
 [env]
