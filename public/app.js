@@ -66,11 +66,9 @@ $('settings-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   $('settings-error').hidden = true;
 
-  const nickname = $('edit-nickname').value.trim();
   const goalTime = $('goal-time').value;
   const locationName = $('location-name').value.trim();
 
-  if (!nickname) return showError($('settings-error'), '닉네임을 입력해 주세요.');
   if (!goalTime) return showError($('settings-error'), '목표 시간을 입력해 주세요.');
   if (!locationName) return showError($('settings-error'), '위치를 입력해 주세요.');
 
@@ -79,9 +77,6 @@ $('settings-form').addEventListener('submit', async (e) => {
   $('save-settings').textContent = '저장 중...';
 
   try {
-    if (nickname !== myNickname) {
-      await api('/me/nickname', { method: 'PUT', body: JSON.stringify({ nickname }) });
-    }
     await api('/me/settings', {
       method: 'PUT',
       body: JSON.stringify({ goal_time: goalTime, location_name: locationName }),
@@ -96,6 +91,48 @@ $('settings-form').addEventListener('submit', async (e) => {
   } finally {
     $('save-settings').disabled = false;
     $('save-settings').textContent = '저장';
+  }
+});
+
+// ── 닉네임 변경 ──────────────────────────────
+// 자기 이름을 바꾸려는 사람은 인사말 근처를 본다. 예전에는 '목표 하루 시작 시간'
+// 카드의 [변경] 안에 숨어 있어서 기능이 있어도 찾을 수가 없었다.
+$('edit-name').addEventListener('click', () => {
+  $('name-form').hidden = false;
+  $('edit-name').hidden = true;
+  $('edit-nickname').focus();
+});
+
+function closeNameForm() {
+  $('name-form').hidden = true;
+  $('edit-name').hidden = false;
+  $('name-error').hidden = true;
+}
+
+$('cancel-name').addEventListener('click', () => {
+  $('edit-nickname').value = myNickname ?? '';
+  closeNameForm();
+});
+
+$('name-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  $('name-error').hidden = true;
+
+  const nickname = $('edit-nickname').value.trim();
+  if (!nickname) return showError($('name-error'), '닉네임을 입력해 주세요.');
+  if (nickname === myNickname) return closeNameForm();
+
+  $('save-name').disabled = true;
+  try {
+    await api('/me/nickname', { method: 'PUT', body: JSON.stringify({ nickname }) });
+    closeNameForm();
+    // 랭킹의 '내 줄' 강조도 닉네임으로 찾으므로 함께 다시 그린다
+    await Promise.all([renderUser(), renderLeaderboard()]);
+  } catch (err) {
+    if (err.status === 401) return showLogin();
+    showError($('name-error'), err.message);
+  } finally {
+    $('save-name').disabled = false;
   }
 });
 
@@ -256,6 +293,9 @@ async function renderUser() {
   $('window-hint').textContent = `${earliest} ~ ${goal} 사이에 누르면 성공`;
 
   $('edit-nickname').value = user.nickname;
+  $('name-form').hidden = true;
+  $('edit-name').hidden = false;
+  $('name-error').hidden = true;
   $('goal-time').value = goal;
   $('location-name').value = user.settings.location_name;
   $('coord-hint').textContent =

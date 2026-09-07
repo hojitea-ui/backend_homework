@@ -48,10 +48,24 @@
     <div class="row">
       <div>
         <p class="muted" id="today-date"></p>
-        <h1 id="greeting"></h1>
+        <div class="namerow">
+          <h1 id="greeting"></h1>
+          <button id="edit-name" class="ghost small" type="button">이름 변경</button>
+        </div>
       </div>
       <div id="weather" class="weather"></div>
     </div>
+
+    <form id="name-form" hidden>
+      <label>닉네임
+        <input id="edit-nickname" type="text" maxlength="20" autocomplete="off" required>
+      </label>
+      <div class="row">
+        <button type="submit" id="save-name">저장</button>
+        <button type="button" id="cancel-name" class="ghost">취소</button>
+      </div>
+      <p id="name-error" class="error" hidden></p>
+    </form>
   </header>
 
   <section class="card">
@@ -65,7 +79,6 @@
     </div>
 
     <form id="settings-form" hidden>
-      <label>닉네임 <input id="edit-nickname" type="text" maxlength="20" autocomplete="off" required></label>
       <label>목표 시간 <input id="goal-time" type="time" required></label>
       <label>날씨 위치 <input id="location-name" type="text" maxlength="20" placeholder="예: 서울, 부산, 강남구" required></label>
       <p class="muted" id="coord-hint"></p>

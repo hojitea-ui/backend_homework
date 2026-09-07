@@ -210,3 +210,6 @@ details[open] summary { margin-bottom: 10px; }
 button.danger { background: transparent; color: var(--fail); border-color: var(--fail); }
 button.danger:hover { background: var(--fail); color: var(--card); }
 #danger-box summary { color: var(--fail); }
+
+/* 인사말 옆에 이름 변경 버튼. h1이 길면 버튼이 아래로 내려간다 */
+.namerow { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
