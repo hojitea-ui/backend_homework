@@ -30,7 +30,7 @@ CREATE INDEX IF NOT EXISTS idx_users_best_streak ON users (best_streak DESC);
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS user_settings (
     user_id       INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    goal_time     TEXT NOT NULL DEFAULT '06:30',
+    goal_time     TEXT NOT NULL DEFAULT '06:00',   -- 새 DB용. 앱은 routes.js의 DEFAULT_GOAL_TIME을 쓴다
     location_name TEXT NOT NULL DEFAULT '서울',
     latitude      REAL NOT NULL DEFAULT 37.5665,
     longitude     REAL NOT NULL DEFAULT 126.9780,

@@ -20,6 +20,7 @@ const server = spawn(process.execPath, ['src/server.js'], {
     PORT: String(PORT),
     SESSION_SECRET: 'x'.repeat(64),
     EARLY_CHECKIN_WINDOW_MINUTES: '90',   // 기본값 180과 다른 값으로 띄운다
+    DEFAULT_GOAL_TIME: '06:30',           // 앱 기본값이 바뀌어도 아래 단정이 안 흔들리게 고정
   },
   stdio: ['ignore', 'ignore', 'inherit'],
 });

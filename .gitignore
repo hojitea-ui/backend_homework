@@ -1,4 +1,7 @@
 node_modules/
+
+# oh-my-claudecode 플러그인이 만드는 세션 상태 (프로젝트와 무관)
+.omc/
 .env
 *.db
 *.db-wal

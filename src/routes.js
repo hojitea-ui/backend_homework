@@ -20,7 +20,7 @@ const q = {
   insertUser: db.prepare('INSERT INTO users (nickname) VALUES (?)'),
   rename: db.prepare('UPDATE users SET nickname = ? WHERE id = ?'),
   insertSettings: db.prepare(
-    'INSERT INTO user_settings (user_id, location_name, latitude, longitude) VALUES (?, ?, ?, ?)'
+    'INSERT INTO user_settings (user_id, goal_time, location_name, latitude, longitude) VALUES (?, ?, ?, ?, ?)'
   ),
   settings: db.prepare('SELECT * FROM user_settings WHERE user_id = ?'),
   updateSettings: db.prepare(`
@@ -40,7 +40,9 @@ const q = {
 
 const createUser = db.transaction((nickname, place) => {
   const { lastInsertRowid } = q.insertUser.run(nickname);
-  q.insertSettings.run(lastInsertRowid, place.location_name, place.latitude, place.longitude);
+  q.insertSettings.run(
+    lastInsertRowid, DEFAULT_GOAL_TIME, place.location_name, place.latitude, place.longitude
+  );
   return Number(lastInsertRowid);
 });
 
@@ -57,6 +59,19 @@ function me(req) {
   // 세션은 살아 있는데 사용자가 사라진 경우 (DB를 비웠을 때 등)
   if (!user) throw new HttpError(401, '기록을 찾을 수 없어요. 닉네임을 다시 정해 주세요.');
   return user;
+}
+
+const GOAL_TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+// 새 사용자의 기본 목표 시간. 스키마 DEFAULT가 아니라 여기서 정한다 —
+// CREATE TABLE IF NOT EXISTS는 이미 있는 테이블을 건드리지 않고
+// SQLite는 컬럼 DEFAULT를 ALTER로 바꿀 수 없어서, 스키마만 고치면
+// 이미 배포된 DB의 새 사용자는 옛 기본값을 계속 받는다.
+const DEFAULT_GOAL_TIME = process.env.DEFAULT_GOAL_TIME ?? '06:00';
+if (!GOAL_TIME_PATTERN.test(DEFAULT_GOAL_TIME)) {
+  // 여기서 막지 않으면 CHECK 제약에 걸려 가입하는 순간 500으로 터진다
+  console.error(`DEFAULT_GOAL_TIME이 HH:MM 형식이 아닙니다: ${DEFAULT_GOAL_TIME}`);
+  process.exit(1);
 }
 
 const DEFAULT_PLACE = {
@@ -122,7 +137,7 @@ router.put('/me/settings', requireSession, async (req, res) => {
   const current = q.settings.get(user.id);
 
   const goalTime = String(req.body?.goal_time ?? current.goal_time);
-  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(goalTime)) {
+  if (!GOAL_TIME_PATTERN.test(goalTime)) {
     throw new HttpError(400, '목표 시간은 HH:MM 형식이어야 합니다.');
   }
 
