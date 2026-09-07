@@ -28,6 +28,7 @@ function showError(el, message) {
 
 function showLogin() {
   $('app').hidden = true;
+  $('code-panel').hidden = true;
   $('login').hidden = false;
 }
 
@@ -40,7 +41,9 @@ $('login-form').addEventListener('submit', async (e) => {
   if (!nickname) return showError($('login-error'), '닉네임을 입력해 주세요.');
 
   try {
-    await api('/signup', { method: 'POST', body: JSON.stringify({ nickname }) });
+    const created = await api('/signup', { method: 'POST', body: JSON.stringify({ nickname }) });
+    // 이미 이 기기에 기록이 있으면 서버가 코드 없이 기존 사용자를 돌려준다(200).
+    if (created.recovery_code) return showCodePanel(created.recovery_code);
     await start();
   } catch (err) {
     showError($('login-error'), err.message);
@@ -126,6 +129,76 @@ function setResult(message, kind) {
   el.hidden = false;
 }
 
+// ── 복구 코드 ────────────────────────────────
+// 서버는 해시만 갖고 있어서 이 코드를 다시 알려줄 수 없다.
+// 그래서 가입 직후 한 번 보여주고, 저장했는지 확인받은 뒤에야 넘어간다.
+function showCodePanel(code) {
+  $('login').hidden = true;
+  $('app').hidden = true;
+  $('code-panel').hidden = false;
+  $('code-value').textContent = code;
+  $('code-saved').checked = false;
+  $('code-continue').disabled = true;
+  $('code-copied').hidden = true;
+}
+
+$('code-copy').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText($('code-value').textContent);
+    $('code-copied').hidden = false;
+  } catch {
+    // 클립보드 권한이 없거나 http라 막힌 경우. 직접 드래그하면 되므로 조용히 넘어간다.
+    $('code-copied').textContent = '직접 복사해 주세요';
+    $('code-copied').hidden = false;
+  }
+});
+
+// 저장했다고 표시해야 넘어갈 수 있다. 한 번 지나가면 다시 못 보는 값이라 여기서 붙잡는다.
+$('code-saved').addEventListener('change', () => {
+  $('code-continue').disabled = !$('code-saved').checked;
+});
+
+$('code-continue').addEventListener('click', async () => {
+  $('code-panel').hidden = true;
+  await start();
+});
+
+// 코드를 들고 다른 기기에서 들어오는 경로
+$('recover-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  $('recover-error').hidden = true;
+
+  const code = $('recovery-input').value.trim();
+  if (!code) return showError($('recover-error'), '복구 코드를 입력해 주세요.');
+
+  try {
+    await api('/recover', { method: 'POST', body: JSON.stringify({ code }) });
+    $('recovery-input').value = '';
+    await start();
+  } catch (err) {
+    showError($('recover-error'), err.message);
+  }
+});
+
+// 재발급. 옛 코드는 이 순간 무효가 되므로 확인을 받는다.
+$('recovery-regen').addEventListener('click', async () => {
+  if (!confirm('새 코드를 발급하면 지금까지 쓰던 복구 코드는 즉시 무효가 됩니다. 계속할까요?')) return;
+
+  $('recovery-error').hidden = true;
+  $('recovery-regen').disabled = true;
+  try {
+    const { recovery_code: code } = await api('/me/recovery-code', { method: 'POST' });
+    $('recovery-new').textContent = code;
+    $('recovery-new').hidden = false;
+    $('recovery-status').textContent = '새 코드를 발급했어요. 저장해 주세요.';
+  } catch (err) {
+    if (err.status === 401) return showLogin();
+    showError($('recovery-error'), err.message);
+  } finally {
+    $('recovery-regen').disabled = false;
+  }
+});
+
 // ── 렌더링 ──────────────────────────────────
 async function renderUser() {
   const user = await api('/me');
@@ -166,7 +239,15 @@ async function renderUser() {
   } else {
     $('check-in').disabled = false;
     $('check-in').textContent = '출석 체크';
+    // 복구로 다른 사용자가 들어왔을 때 앞사람의 출석 메시지가 남지 않게 지운다
+    $('check-result').hidden = true;
   }
+
+  $('recovery-new').hidden = true;
+  $('recovery-error').hidden = true;
+  $('recovery-status').textContent = user.has_recovery_code
+    ? '발급되어 있어요. 코드는 다시 볼 수 없고 새로 발급만 됩니다.'
+    : '아직 없어요. 발급해 두면 쿠키를 지워도 기록을 되찾을 수 있어요.';
 }
 
 async function renderWeather() {

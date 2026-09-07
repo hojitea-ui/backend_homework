@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import express from 'express';
 import { db, localDate } from './db.js';
 import { checkIn, checkInWindow } from './attendance.js';
@@ -17,7 +18,9 @@ class HttpError extends Error {
 const q = {
   byId: db.prepare('SELECT * FROM users WHERE id = ?'),
   byNick: db.prepare('SELECT * FROM users WHERE nickname = ?'),
-  insertUser: db.prepare('INSERT INTO users (nickname) VALUES (?)'),
+  insertUser: db.prepare('INSERT INTO users (nickname, recovery_code_hash) VALUES (?, ?)'),
+  byRecovery: db.prepare('SELECT * FROM users WHERE recovery_code_hash = ?'),
+  setRecovery: db.prepare('UPDATE users SET recovery_code_hash = ? WHERE id = ?'),
   rename: db.prepare('UPDATE users SET nickname = ? WHERE id = ?'),
   insertSettings: db.prepare(
     'INSERT INTO user_settings (user_id, goal_time, location_name, latitude, longitude) VALUES (?, ?, ?, ?, ?)'
@@ -38,8 +41,8 @@ const q = {
   ),
 };
 
-const createUser = db.transaction((nickname, place) => {
-  const { lastInsertRowid } = q.insertUser.run(nickname);
+const createUser = db.transaction((nickname, place, recoveryHash) => {
+  const { lastInsertRowid } = q.insertUser.run(nickname, recoveryHash);
   q.insertSettings.run(
     lastInsertRowid, DEFAULT_GOAL_TIME, place.location_name, place.latitude, place.longitude
   );
@@ -80,15 +83,75 @@ const DEFAULT_PLACE = {
   longitude: Number(process.env.DEFAULT_LONGITUDE ?? 126.978),
 };
 
+// ── 복구 코드 ────────────────────────────────
+// 이 코드를 가진 사람은 어느 기기에서든 계정을 연다. 즉 사실상 비밀번호다.
+// 그래서 평문을 저장하지 않고 SHA-256 해시만 남긴다 — DB나 스냅샷이 유출돼도
+// 그 값으로는 로그인할 수 없다.
+//
+// bcrypt 같은 느린 해시를 쓰지 않는 이유: 코드가 128비트 난수라서
+// 오프라인 전수 대입의 대상이 아니다. 사람이 정한 비밀번호와 다른 상황이고,
+// 그래서 해싱 라이브러리 없이 node:crypto만으로 충분하다.
+const RECOVERY_CODE_BYTES = 16;                    // 128비트
+const RECOVERY_CODE_PATTERN = /^[0-9a-f]{32}$/;    // 정규화한 뒤의 모양
+
+// 대시를 빼거나 대문자로 붙여넣어도 통해야 한다. 대시는 읽기 편하라고 넣은 것이고
+// 보안과는 무관하다.
+const normalizeCode = (raw) => String(raw ?? '').replace(/[\s-]/g, '').toLowerCase();
+
+const hashCode = (code) =>
+  crypto.createHash('sha256').update(normalizeCode(code)).digest('hex');
+
+function newRecoveryCode() {
+  const hex = crypto.randomBytes(RECOVERY_CODE_BYTES).toString('hex');
+  return hex.match(/.{8}/g).join('-');
+}
+
+// 복구 코드 해시는 응답에 실어 보내지 않는다. 128비트라 유출돼도 뚫리지는 않지만,
+// 내보낼 이유가 없는 값이다.
+function publicUser({ recovery_code_hash, ...rest }) {
+  return rest;
+}
+
+// 복구 엔드포인트는 이 앱에서 유일하게 '추측할 수 있는 입구'다.
+// 코드가 128비트라 현실적으로 못 맞히지만, 시도 자체를 제한해 둔다.
+// 머신 1대로만 돌리므로 메모리에 둬도 된다 (재시작하면 초기화).
+const RECOVER_MAX_ATTEMPTS = Number(process.env.RECOVER_MAX_ATTEMPTS ?? 10);
+const RECOVER_WINDOW_MS = Number(process.env.RECOVER_WINDOW_MINUTES ?? 10) * 60 * 1000;
+const recoverAttempts = new Map();
+
+function throttleRecover(req) {
+  const now = Date.now();
+
+  // 만료된 항목이 쌓여 메모리를 먹지 않게 가끔 훑어낸다
+  if (recoverAttempts.size > 1000) {
+    for (const [key, entry] of recoverAttempts) {
+      if (entry.resetAt <= now) recoverAttempts.delete(key);
+    }
+  }
+
+  const ip = req.ip ?? 'unknown';
+  const entry = recoverAttempts.get(ip);
+  if (!entry || entry.resetAt <= now) {
+    recoverAttempts.set(ip, { count: 1, resetAt: now + RECOVER_WINDOW_MS });
+    return;
+  }
+
+  entry.count += 1;
+  if (entry.count > RECOVER_MAX_ATTEMPTS) {
+    const seconds = Math.ceil((entry.resetAt - now) / 1000);
+    throw new HttpError(429, `시도가 너무 많아요. ${seconds}초 후에 다시 해 주세요.`);
+  }
+}
+
 // 닉네임 선점. 이미 쓰는 닉네임이면 거절한다.
 // 이전에는 기존 사용자를 그대로 돌려줬는데, 그러면 닉네임만 알면 남의 기록을 가져갈 수 있었다.
 router.post('/signup', (req, res) => {
   // 이미 이 기기에 기록이 있으면 새로 만들지 않고 그것을 돌려준다.
-  // 기기 바인딩이라 세션을 새 사용자로 갈아타면 이전 기록의 쿠키가 사라져
-  // 주인 없는 기록이 되고 영구히 되찾을 수 없다.
+  // 세션을 새 사용자로 갈아타면 이전 기록의 쿠키가 사라진다. 복구 코드를
+  // 저장해 둔 사람은 되찾을 수 있지만, 저장 안 한 사람은 그대로 잃는다.
   if (req.session?.userId) {
     const existing = q.byId.get(req.session.userId);
-    if (existing) return res.status(200).json(existing);
+    if (existing) return res.status(200).json(publicUser(existing));
   }
 
   const nickname = cleanNickname(req.body?.nickname);
@@ -97,17 +160,22 @@ router.post('/signup', (req, res) => {
     throw new HttpError(409, `'${nickname}'은(는) 이미 사용 중이에요. 다른 닉네임을 써 주세요.`);
   }
 
-  const id = createUser(nickname, DEFAULT_PLACE);
+  // 코드는 이 응답에서 딱 한 번 나간다. 해시만 저장하므로 서버도 다시 알려줄 수 없다.
+  const code = newRecoveryCode();
+  const id = createUser(nickname, DEFAULT_PLACE, hashCode(code));
   req.session.userId = id;
-  res.status(201).json(q.byId.get(id));
+  res.status(201).json({ ...publicUser(q.byId.get(id)), recovery_code: code });
 });
 
 router.get('/me', requireSession, (req, res) => {
   const user = me(req);
   const settings = q.settings.get(user.id);
   res.json({
-    ...user,
+    ...publicUser(user),
     settings,
+    // 코드 자체는 알려줄 수 없으니 '있는지'만 내려준다.
+    // 화면이 코드 없는 사용자에게 발급을 권하는 데 쓴다.
+    has_recovery_code: user.recovery_code_hash !== null,
     // 출석 창은 서버가 계산해서 내려준다. 화면이 하한선을 다시 계산하면
     // EARLY_CHECKIN_WINDOW_MINUTES를 바꿀 때 안내만 틀려진다.
     checkin_window: checkInWindow(settings.goal_time),
@@ -117,8 +185,7 @@ router.get('/me', requireSession, (req, res) => {
 });
 
 // 닉네임 변경. 기록은 그대로 유지된다.
-// 기기 바인딩이라 로그아웃 후 재입장하면 기록을 되찾을 수 없으므로,
-// '닉네임만 바꾸고 싶은' 경우를 위해 별도로 둔다.
+// 새로 가입하면 기록이 딸려오지 않으므로 '이름만 바꾸고 싶은' 경우를 위해 별도로 둔다.
 router.put('/me/nickname', requireSession, (req, res) => {
   const user = me(req);
   const nickname = cleanNickname(req.body?.nickname);
@@ -129,7 +196,7 @@ router.put('/me/nickname', requireSession, (req, res) => {
   }
 
   q.rename.run(nickname, user.id);
-  res.json(q.byId.get(user.id));
+  res.json(publicUser(q.byId.get(user.id)));
 });
 
 router.put('/me/settings', requireSession, async (req, res) => {
@@ -155,7 +222,7 @@ router.put('/me/settings', requireSession, async (req, res) => {
 
 router.post('/me/attendance', requireSession, (req, res) => {
   const user = me(req);
-  res.status(201).json(checkIn(user.id));
+  res.status(201).json(publicUser(checkIn(user.id)));
 });
 
 router.get('/me/recent', requireSession, (req, res) => {
@@ -166,6 +233,37 @@ router.get('/me/weather', requireSession, async (req, res) => {
   const settings = q.settings.get(me(req).id);
   const weather = await getWeather(settings.latitude, settings.longitude);
   res.json({ ...weather, location_name: settings.location_name });
+});
+
+// 복구 코드로 기록을 되찾는다. 쿠키가 없어도, 다른 기기에서도 된다.
+// 이게 있어서 '쿠키가 신원의 전부'가 아니게 되었다.
+router.post('/recover', (req, res) => {
+  throttleRecover(req);
+
+  const code = normalizeCode(req.body?.code);
+  if (!RECOVERY_CODE_PATTERN.test(code)) {
+    throw new HttpError(400, '복구 코드 형식이 올바르지 않아요.');
+  }
+
+  const user = q.byRecovery.get(hashCode(code));
+  // 코드가 틀렸는지, 그런 계정이 없는지 구분해서 알려주지 않는다
+  if (!user) throw new HttpError(401, '복구 코드를 찾을 수 없어요.');
+
+  // 세션 고정 공격을 막으려고 세션 id를 새로 발급한 뒤 사용자를 붙인다
+  req.session.regenerate((err) => {
+    if (err) return res.status(500).json({ error: '세션을 만들 수 없어요.' });
+    req.session.userId = user.id;
+    res.json(publicUser(user));
+  });
+});
+
+// 코드를 새로 발급한다. 해시만 저장하므로 잃어버린 코드를 다시 보여줄 방법이 없다 —
+// 그래서 '다시 보기'가 아니라 '다시 만들기'다. 옛 코드는 즉시 무효가 된다.
+router.post('/me/recovery-code', requireSession, (req, res) => {
+  const user = me(req);
+  const code = newRecoveryCode();
+  q.setRecovery.run(hashCode(code), user.id);
+  res.status(201).json({ recovery_code: code });
 });
 
 // 랭킹은 인증 없이 볼 수 있다. 닉네임과 기록 일수만 나가고 설정은 나가지 않는다.

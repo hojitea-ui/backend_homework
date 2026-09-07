@@ -180,3 +180,25 @@ button.primary { width: 100%; padding: 18px; font-size: 18px; font-weight: 600; 
 .leaderboard .empty { color: var(--muted); font-size: 14px; padding: 8px 12px; }
 
 footer { max-width: 480px; width: 100%; text-align: center; }
+
+/* 복구 코드. 통째로 드래그되도록 user-select: all */
+.code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 15px;
+  letter-spacing: .5px;
+  background: var(--badge-absent-bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 12px 0 0;
+  word-break: break-all;
+  user-select: all;
+}
+
+/* label이 flex-direction: column이라 방향을 되돌려야 체크박스가 글자 옆에 온다.
+   input의 width:100%도 여기서 풀어준다. */
+.check { display: flex; flex-direction: row; align-items: center; gap: 8px; margin: 16px 0; color: var(--muted); font-size: 13px; cursor: pointer; flex: none; }
+.check input { width: auto; margin: 0; }
+
+details summary { cursor: pointer; color: var(--muted); font-size: 13px; margin-top: 16px; }
+details[open] summary { margin-bottom: 10px; }

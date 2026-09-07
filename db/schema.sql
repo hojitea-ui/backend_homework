@@ -18,12 +18,17 @@ CREATE TABLE IF NOT EXISTS users (
     best_streak       INTEGER NOT NULL DEFAULT 0 CHECK (best_streak    >= 0),
     current_streak    INTEGER NOT NULL DEFAULT 0 CHECK (current_streak >= 0),
     last_success_date TEXT,   -- 'YYYY-MM-DD', 스트릭 연속 판정 기준
+    recovery_code_hash TEXT,  -- SHA-256(복구 코드). 평문은 저장하지 않아 다시 보여줄 수 없다
     created_at        TEXT    NOT NULL DEFAULT (datetime('now', 'localtime')),
     CHECK (length(trim(nickname)) BETWEEN 1 AND 20),
     CHECK (last_success_date IS NULL OR last_success_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]')
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_best_streak ON users (best_streak DESC);
+
+-- 복구 코드로 사용자를 찾는 인덱스.
+-- UNIQUE지만 SQLite는 NULL을 여러 개 허용하므로 코드 없는 사용자가 여럿 있어도 된다.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_recovery_code ON users (recovery_code_hash);
 
 -- ─────────────────────────────────────────────
 -- 2. user_settings : 목표 시간 + 날씨 위치 (users와 1:1)
