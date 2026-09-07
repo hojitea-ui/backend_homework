@@ -199,6 +199,32 @@ $('recovery-regen').addEventListener('click', async () => {
   }
 });
 
+// 기록 삭제. 되돌릴 수 없어서 닉네임을 그대로 입력받아 서버가 대조한다.
+$('delete-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  $('delete-error').hidden = true;
+
+  const nickname = $('delete-confirm').value.trim();
+  if (!nickname) return showError($('delete-error'), '닉네임을 입력해 주세요.');
+
+  $('delete-submit').disabled = true;
+  try {
+    await api('/me', { method: 'DELETE', body: JSON.stringify({ nickname }) });
+    // 서버가 세션을 파기했으므로 남은 화면 상태를 비우고 처음으로 돌아간다
+    myNickname = null;
+    $('delete-confirm').value = '';
+    $('danger-box').open = false;
+    $('check-result').hidden = true;
+    $('recovery-new').hidden = true;
+    showLogin();
+  } catch (err) {
+    if (err.status === 401) return showLogin();
+    showError($('delete-error'), err.message);
+  } finally {
+    $('delete-submit').disabled = false;
+  }
+});
+
 // ── 렌더링 ──────────────────────────────────
 // 인사말은 배경 하늘과 같은 시간대 구분을 쓴다.
 // sky.js가 <html>에 data-sky를 붙여 두고 60초마다 갱신하므로, 그 값만 읽으면

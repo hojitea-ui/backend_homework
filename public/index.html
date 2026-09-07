@@ -116,6 +116,20 @@
     <p class="code" id="recovery-new" hidden></p>
     <p id="recovery-error" class="error" hidden></p>
   </section>
+
+  <section class="card">
+    <details id="danger-box">
+      <summary>기록 삭제</summary>
+      <p class="muted">닉네임, 설정, 출석 기록이 모두 지워집니다. <strong>되돌릴 수 없고</strong> 복구 코드도 함께 무효가 됩니다. 닉네임은 다시 쓸 수 있게 풀립니다.</p>
+      <form id="delete-form">
+        <label>확인을 위해 닉네임을 입력해 주세요
+          <input id="delete-confirm" type="text" maxlength="20" autocomplete="off" placeholder="내 닉네임" required>
+        </label>
+        <button type="submit" id="delete-submit" class="danger">영구 삭제</button>
+      </form>
+      <p id="delete-error" class="error" hidden></p>
+    </details>
+  </section>
 </main>
 
 <script src="app.js"></script>

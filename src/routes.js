@@ -4,7 +4,7 @@ import { db, localDate } from './db.js';
 import { checkIn, checkInWindow } from './attendance.js';
 import { geocode } from './geocode.js';
 import { getWeather } from './weather.js';
-import { requireSession } from './session.js';
+import { requireSession, SESSION_COOKIE_NAME } from './session.js';
 
 export const router = express.Router();
 
@@ -21,6 +21,7 @@ const q = {
   insertUser: db.prepare('INSERT INTO users (nickname, recovery_code_hash) VALUES (?, ?)'),
   byRecovery: db.prepare('SELECT * FROM users WHERE recovery_code_hash = ?'),
   setRecovery: db.prepare('UPDATE users SET recovery_code_hash = ? WHERE id = ?'),
+  deleteUser: db.prepare('DELETE FROM users WHERE id = ?'),
   rename: db.prepare('UPDATE users SET nickname = ? WHERE id = ?'),
   insertSettings: db.prepare(
     'INSERT INTO user_settings (user_id, goal_time, location_name, latitude, longitude) VALUES (?, ?, ?, ?, ?)'
@@ -264,6 +265,29 @@ router.post('/me/recovery-code', requireSession, (req, res) => {
   const code = newRecoveryCode();
   q.setRecovery.run(hashCode(code), user.id);
   res.status(201).json({ recovery_code: code });
+});
+
+// 기록 삭제. 되돌릴 수 없다.
+//
+// 이 앱은 '우발적 상실은 막는다'는 원칙으로 만들어져서 로그아웃 버튼도 두지 않았다.
+// 그래서 의도적인 삭제도 클릭 한 번으로는 안 되게 닉네임을 그대로 입력받아 대조한다.
+//
+// users 한 행만 지우면 ON DELETE CASCADE가 user_settings와 attendance를 함께 지우고
+// 닉네임도 풀린다. sessions는 외래키 관계가 아니라 CASCADE가 안 걸리므로 직접 파기한다.
+router.delete('/me', requireSession, (req, res) => {
+  const user = me(req);
+
+  if (String(req.body?.nickname ?? '').trim() !== user.nickname) {
+    throw new HttpError(400, '지우려면 닉네임을 정확히 입력해 주세요.');
+  }
+
+  q.deleteUser.run(user.id);
+
+  req.session.destroy((err) => {
+    if (err) return res.status(500).json({ error: '세션을 지우지 못했어요.' });
+    res.clearCookie(SESSION_COOKIE_NAME);
+    res.status(204).end();
+  });
 });
 
 // 랭킹은 인증 없이 볼 수 있다. 닉네임과 기록 일수만 나가고 설정은 나가지 않는다.

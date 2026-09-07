@@ -149,6 +149,28 @@ try {
   check('새 코드는 유효', (await device()('/api/recover', { method: 'POST', body: { code: fresh.data.recovery_code } })).status === 200);
   check('재발급은 인증 필요', (await device()('/api/me/recovery-code', { method: 'POST' })).status === 401);
 
+  console.log('');
+  console.log('기록 삭제');
+  const doomed = device();
+  const born2 = await doomed('/api/signup', { method: 'POST', body: { nickname: '지울사람' } });
+  const code2 = born2.data.recovery_code;
+
+  check('쿠키 없이 삭제 -> 401', (await device()('/api/me', { method: 'DELETE', body: { nickname: '지울사람' } })).status === 401);
+
+  const wrongName = await doomed('/api/me', { method: 'DELETE', body: { nickname: '딴이름' } });
+  check('닉네임이 다르면 -> 400', wrongName.status === 400, wrongName.data.error);
+  check('그래도 계정은 살아 있다', (await doomed('/api/me')).status === 200);
+
+  const gone = await doomed('/api/me', { method: 'DELETE', body: { nickname: '지울사람' } });
+  check('닉네임이 맞으면 -> 204', gone.status === 204);
+  check('삭제 후 같은 쿠키로 /me -> 401', (await doomed('/api/me')).status === 401);
+  check('삭제되면 복구 코드도 무효', (await device()('/api/recover', { method: 'POST', body: { code: code2 } })).status === 401);
+  check('닉네임이 다시 풀린다', (await device()('/api/signup', { method: 'POST', body: { nickname: '지울사람' } })).status === 201);
+
+  console.log('');
+  console.log('복구 시도 제한');
+  // 이 검사는 맨 마지막이어야 한다. 한 번 돌리면 이 IP가 10분간 막혀서,
+  // 뒤에 오는 /api/recover 호출이 전부 401 대신 429를 받는다.
   // 추측 시도 제한
   let throttled = 0;
   for (let i = 0; i < 15; i += 1) {

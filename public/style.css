@@ -202,3 +202,11 @@ footer { max-width: 480px; width: 100%; text-align: center; }
 
 details summary { cursor: pointer; color: var(--muted); font-size: 13px; margin-top: 16px; }
 details[open] summary { margin-bottom: 10px; }
+
+/* 되돌릴 수 없는 동작. 실수로 누르지 않게 색으로 구분한다.
+   --fail을 배경이 아니라 글씨·테두리로 쓴다 — 어두운 테마의 --fail은 #ffa8a8이라
+   배경으로 깔고 흰 글씨를 얹으면 대비가 무너진다. .error가 쓰는 용법과 같게 맞춘다.
+   채워진 버튼이 아닌 것도 의도다. 반사적으로 누르기 어려워야 하는 버튼이다. */
+button.danger { background: transparent; color: var(--fail); border-color: var(--fail); }
+button.danger:hover { background: var(--fail); color: var(--card); }
+#danger-box summary { color: var(--fail); }

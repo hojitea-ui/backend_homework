@@ -12,6 +12,9 @@ const SqliteStore = SqliteStoreFactory(session);
 // 세션 id 생성, 쿠키 서명, 만료 처리는 직접 만들지 않고 express-session에 맡긴다.
 const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
+// 세션을 파기할 때 라우트에서도 같은 이름을 써야 해서 내보낸다
+export const SESSION_COOKIE_NAME = 'haru.sid';
+
 // 배포(Fly.io)에서는 HTTPS로 나가므로 secure 쿠키를 쓴다.
 // localhost는 http라 켜면 쿠키가 아예 안 내려가므로 환경으로 가른다.
 const isProduction = process.env.NODE_ENV === 'production';
@@ -34,7 +37,7 @@ export const sessionMiddleware = session({
   secret: SECRET,
   resave: false,
   saveUninitialized: false,   // 닉네임을 정하기 전에는 세션을 만들지 않는다
-  name: 'haru.sid',
+  name: SESSION_COOKIE_NAME,
   cookie: {
     httpOnly: true,           // JS에서 못 읽게 해서 토큰 탈취를 막는다
     sameSite: 'lax',
