@@ -200,6 +200,20 @@ $('recovery-regen').addEventListener('click', async () => {
 });
 
 // ── 렌더링 ──────────────────────────────────
+// 인사말은 배경 하늘과 같은 시간대 구분을 쓴다.
+// sky.js가 <html>에 data-sky를 붙여 두고 60초마다 갱신하므로, 그 값만 읽으면
+// 인사말과 배경이 어긋날 일이 없다. 시간대 판정 규칙을 두 벌 두지 않아도 된다.
+const GREETING = {
+  dawn: '좋은 아침이에요',     // 04:00~07:00
+  morning: '좋은 아침이에요',  // 07:00~11:00
+  day: '좋은 오후예요',        // 11:00~17:00
+  dusk: '좋은 밤이에요',       // 17:00~22:00
+  night: '좋은 밤이에요',      // 22:00~04:00
+};
+
+const greetingFor = () => GREETING[document.documentElement.dataset.sky] ?? '좋은 아침이에요';
+
+
 async function renderUser() {
   const user = await api('/me');
   myNickname = user.nickname;
@@ -207,7 +221,7 @@ async function renderUser() {
   const date = new Date(`${user.server_date}T00:00:00`);
   const weekday = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
   $('today-date').textContent = `${date.getMonth() + 1}월 ${date.getDate()}일 ${weekday}요일`;
-  $('greeting').textContent = `${user.nickname}님, 좋은 아침이에요!`;
+  $('greeting').textContent = `${user.nickname}님, ${greetingFor()}!`;
 
   const goal = user.settings.goal_time;
   $('goal-display').textContent = goal;
@@ -329,6 +343,14 @@ async function start() {
   await renderUser();
   await Promise.all([renderWeather(), renderRecent(), renderLeaderboard()]);
 }
+
+// 화면을 켜둔 채 시간대가 넘어가면 배경만 바뀌고 인사말이 그대로 남는다.
+// sky.js와 같은 주기로 다시 칠한다.
+setInterval(() => {
+  if (myNickname && !$('app').hidden) {
+    $('greeting').textContent = `${myNickname}님, ${greetingFor()}!`;
+  }
+}, 60 * 1000);
 
 // 쿠키가 있으면 바로 앱으로, 없거나 만료됐으면 닉네임 화면으로.
 start().catch((err) => {
