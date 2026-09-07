@@ -1,0 +1,182 @@
+/* 기상 시간 앱이라 배경이 여는 시각의 하늘을 따라간다.
+   sky.js가 <html>에 data-sky를 붙이고, 아래 블록들이 변수만 갈아끼운다.
+   그래서 색을 쓰는 규칙은 한 군데도 고칠 필요가 없다. */
+:root {
+  --radius: 12px;
+
+  /* 낮 계열 기본값. data-sky가 없어도 읽을 수 있는 상태로 둔다. */
+  --sky: linear-gradient(180deg, #cfe2f2 0%, #eaeff2 50%, #f4f2ed 100%);
+  --sky-fallback: #f4f2ed;
+  --card: rgba(255, 255, 255, 0.88);
+  --line: rgba(35, 34, 31, 0.12);
+  --text: #23221f;
+  --muted: #6d6b64;
+  /* 흰 글씨와의 명암비가 4.91:1. 원래 쓰던 #1d9e75는 3.39:1로
+     WCAG AA(4.5:1)에 못 미쳐서 한 단계 어둡게 잡았다. */
+  --accent: #15805e;
+  --accent-dark: #0f6e56;
+  --on-accent: #ffffff;
+  --fail: #a32d2d;
+  --badge-success-bg: #dcf1e8;
+  --badge-success-fg: #0f6e56;
+  --badge-fail-bg: #fbe6e6;
+  --badge-fail-fg: #a32d2d;
+  --badge-absent-bg: rgba(35, 34, 31, 0.07);
+  --me-bg: #dcf1e8;
+}
+
+/* 밝은 하늘 ── 카드는 흰색, 글씨는 검정 */
+
+:root[data-sky="morning"] {
+  --sky: linear-gradient(180deg, #9dc4e8 0%, #c9dcee 42%, #f1ebdf 100%);
+  --sky-fallback: #c9dcee;
+}
+
+:root[data-sky="day"] {
+  --sky: linear-gradient(180deg, #cfe2f2 0%, #eaeff2 50%, #f4f2ed 100%);
+  --sky-fallback: #f4f2ed;
+}
+
+/* 어두운 하늘 ── 카드도 어둡게 만든다.
+   그라데이션 아래쪽이 복숭아색으로 밝아지는데, 카드가 반투명 흰색이면
+   그 위에서 흰 글씨가 안 보인다. 그래서 카드를 짙은 남색 반투명으로 둔다. */
+
+:root[data-sky="dawn"],
+:root[data-sky="dusk"],
+:root[data-sky="night"] {
+  --card: rgba(14, 18, 42, 0.58);
+  --line: rgba(255, 255, 255, 0.16);
+  --text: #f6f4ef;
+  --muted: rgba(246, 244, 239, 0.68);
+  --accent: #3fbf95;
+  --accent-dark: #2fa47e;
+  --on-accent: #06241b;
+  --fail: #ffa8a8;
+  --badge-success-bg: rgba(63, 191, 149, 0.22);
+  --badge-success-fg: #9fe1cb;
+  --badge-fail-bg: rgba(255, 168, 168, 0.20);
+  --badge-fail-fg: #f7c1c1;
+  --badge-absent-bg: rgba(255, 255, 255, 0.10);
+  --me-bg: rgba(63, 191, 149, 0.20);
+}
+
+/* 여명 04:00~07:00. 목표 시간대가 여기 들어 있다. 해가 아직 안 뜬 하늘. */
+:root[data-sky="dawn"] {
+  --sky: linear-gradient(180deg, #16214a 0%, #2c3268 30%, #6b4a72 56%, #c2716b 80%, #e8a273 100%);
+  --sky-fallback: #2c3268;
+}
+
+/* 황혼 17:00~22:00 */
+:root[data-sky="dusk"] {
+  --sky: linear-gradient(180deg, #2a2352 0%, #5b3566 26%, #a8446a 54%, #d9694f 78%, #e89a52 100%);
+  --sky-fallback: #5b3566;
+}
+
+/* 밤 22:00~04:00 */
+:root[data-sky="night"] {
+  --sky: linear-gradient(180deg, #0b1027 0%, #141a3a 55%, #1e2247 100%);
+  --sky-fallback: #141a3a;
+}
+
+* { box-sizing: border-box; }
+
+/* main과 form에 display:flex를 주면 브라우저 기본 [hidden]{display:none}을
+   특이도로 눌러버려서 숨겨지지 않는다. 그래서 여기서 다시 못 박아 준다. */
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  padding: 24px 16px 48px;
+  background-color: var(--sky-fallback);
+  background-image: var(--sky);
+  color: var(--text);
+  /* 시간대가 넘어갈 때 색이 툭 튀지 않게 */
+  transition: background-color 1.5s ease, color 1.5s ease;
+  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  min-height: 100vh;
+  /* 한글은 기본값(break-all 유사 동작)으로 두면 단어 중간에서 잘린다.
+     keep-all은 띄어쓰기 단위로만 줄을 바꾼다. */
+  word-break: keep-all;
+}
+
+main { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 14px; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.card.center { text-align: center; }
+
+h1 { margin: 4px 0 0; font-size: 24px; font-weight: 600; line-height: 1.3; }
+p { margin: 0; }
+.muted { color: var(--muted); font-size: 13px; }
+.big { font-size: 26px; font-weight: 600; margin-top: 2px; }
+.right { text-align: right; }
+
+.row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+
+.weather { text-align: right; font-size: 14px; color: var(--muted); white-space: nowrap; }
+.weather strong { display: block; font-size: 22px; color: var(--text); font-weight: 600; }
+
+form { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); flex: 1; }
+.note { color: var(--muted); font-size: 12px; margin-top: 14px; line-height: 1.5; }
+
+input {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--text);
+  width: 100%;
+}
+input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent); }
+
+button {
+  font: inherit;
+  font-weight: 500;
+  padding: 11px 18px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--on-accent);
+  cursor: pointer;
+}
+button:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+
+button.ghost { background: transparent; color: var(--muted); border-color: var(--line); }
+button.ghost:hover { background: var(--badge-absent-bg); color: var(--text); }
+button.small { padding: 7px 12px; font-size: 13px; }
+
+button.primary { width: 100%; padding: 18px; font-size: 18px; font-weight: 600; }
+
+.result { margin-top: 14px; font-size: 15px; font-weight: 500; }
+.result.success { color: var(--accent-dark); }
+.result.fail { color: var(--fail); }
+
+.error { color: var(--fail); font-size: 13px; margin-top: 8px; }
+
+.recent { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.recent li { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px; }
+.badge { font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 999px; }
+.badge.success { background: var(--badge-success-bg); color: var(--badge-success-fg); }
+.badge.fail { background: var(--badge-fail-bg); color: var(--badge-fail-fg); }
+.badge.absent { background: var(--badge-absent-bg); color: var(--muted); }
+
+.leaderboard { padding-left: 0; margin: 12px 0 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.leaderboard li { display: flex; gap: 10px; align-items: baseline; padding: 8px 12px; border-radius: 8px; font-size: 14px; }
+.leaderboard li.me { background: var(--me-bg); font-weight: 500; }
+.leaderboard .rank { color: var(--muted); font-size: 13px; min-width: 24px; }
+.leaderboard .streak { margin-left: auto; color: var(--muted); }
+.leaderboard .empty { color: var(--muted); font-size: 14px; padding: 8px 12px; }
+
+footer { max-width: 480px; width: 100%; text-align: center; }

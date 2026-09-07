@@ -1,0 +1,29 @@
+{
+  "name": "backend-homework",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "오늘도 하루를 시작해볼까요? — 기상 후 출석체크 앱",
+  "scripts": {
+    "start": "node src/server.js",
+    "start:prod": "node src/initdb.js && node src/server.js",
+    "dev": "node --watch src/server.js",
+    "initdb": "node src/initdb.js",
+    "test": "node test/streak.mjs && node test/auth.mjs",
+    "test:streak": "node test/streak.mjs",
+    "test:auth": "node test/auth.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "allowScripts": {
+    "better-sqlite3": true
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.2.0",
+    "better-sqlite3-session-store": "^0.1.0",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "express-session": "^1.19.0"
+  }
+}

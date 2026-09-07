@@ -1,0 +1,15 @@
+# 로컬에서 컴파일된 better_sqlite3.node가 들어가면 리눅스에서 안 돈다
+node_modules
+
+# 실제 DB. 이미지에 넣으면 배포할 때마다 남의 기록으로 덮인다
+data
+*.db
+*.db-wal
+*.db-shm
+
+# SESSION_SECRET은 fly secrets로 넣는다
+.env
+
+.git
+test
+README.md

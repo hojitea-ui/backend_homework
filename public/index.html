@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오늘도 하루를 시작해볼까요?</title>
+<link rel="stylesheet" href="style.css">
+<!-- 첫 페인트 전에 배경을 정해야 색이 번쩍이지 않는다 -->
+<script src="sky.js"></script>
+</head>
+<body>
+
+<main id="login" class="card">
+  <h1>오늘도 하루를<br>시작해볼까요?</h1>
+  <p class="muted">닉네임을 정하면 이 기기에 기록이 저장됩니다.</p>
+  <form id="login-form">
+    <input id="nickname" type="text" placeholder="닉네임" maxlength="20" autocomplete="off" required>
+    <button type="submit">시작하기</button>
+  </form>
+  <p id="login-error" class="error" hidden></p>
+  <p class="note">쿠키를 지우거나 다른 기기에서 열면 이 기록에 다시 접근할 수 없어요.</p>
+</main>
+
+<main id="app" hidden>
+  <header class="card">
+    <div class="row">
+      <div>
+        <p class="muted" id="today-date"></p>
+        <h1 id="greeting"></h1>
+      </div>
+      <div id="weather" class="weather"></div>
+    </div>
+  </header>
+
+  <section class="card">
+    <div class="row">
+      <div>
+        <p class="muted">목표 하루 시작 시간</p>
+        <p class="big" id="goal-display"></p>
+        <p class="muted" id="window-hint"></p>
+      </div>
+      <button id="edit-settings" class="ghost">변경</button>
+    </div>
+
+    <form id="settings-form" hidden>
+      <label>닉네임 <input id="edit-nickname" type="text" maxlength="20" autocomplete="off" required></label>
+      <label>목표 시간 <input id="goal-time" type="time" required></label>
+      <label>날씨 위치 <input id="location-name" type="text" maxlength="20" placeholder="예: 서울, 부산, 강남구" required></label>
+      <p class="muted" id="coord-hint"></p>
+      <div class="row">
+        <button type="submit" id="save-settings">저장</button>
+        <button type="button" id="cancel-settings" class="ghost">취소</button>
+      </div>
+      <p id="settings-error" class="error" hidden></p>
+    </form>
+  </section>
+
+  <section class="card center">
+    <button id="check-in" class="primary">출석 체크</button>
+    <p id="check-result" class="result" hidden></p>
+  </section>
+
+  <section class="card">
+    <div class="row">
+      <div>
+        <p class="muted">최고기록</p>
+        <p class="big" id="best-streak"></p>
+      </div>
+      <div class="right">
+        <p class="muted">현재 연속</p>
+        <p class="big" id="current-streak"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <p class="muted">최근 3일</p>
+    <ul id="recent" class="recent"></ul>
+  </section>
+
+  <section class="card">
+    <p class="muted">최고기록 랭킹</p>
+    <ol id="leaderboard" class="leaderboard"></ol>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

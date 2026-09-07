@@ -1,0 +1,30 @@
+# app 이름은 flyctl launch가 채운다 (전역 유일해야 함)
+primary_region = "nrt"          # 도쿄. 한국에서 가장 가깝다
+
+[env]
+  PORT = "3000"
+
+  # 볼륨 위에 DB를 둔다. 이 줄이 없으면 기본값 ./data/haru.db가 쓰이고,
+  # 컨테이너 파일시스템은 배포마다 날아가므로 모든 기록이 사라진다.
+  DB_PATH = "/data/haru.db"
+
+  # 없으면 UTC로 돌아 아침 출석이 전날 실패로 기록된다. Dockerfile의 tzdata와 한 쌍.
+  TZ = "Asia/Seoul"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+# 볼륨은 머신 1대에만 붙는다. 머신을 2대로 늘리면 두 번째는 빈 DB를 보게 되므로
+# 배포 후 반드시 flyctl scale count 1 로 1대를 유지할 것.
+[[mounts]]
+  source = "haru_data"
+  destination = "/data"
+  initial_size = "1gb"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

@@ -1,0 +1,8 @@
+# 저장소에는 모든 텍스트 파일을 LF로 저장하고, 체크아웃할 때도 LF로 꺼낸다.
+#
+# Windows git 기본값(core.autocrlf)은 체크아웃 때 CRLF로 바꿔 버린다.
+# Dockerfile이 CRLF가 되면 RUN 명령의 줄 이음(\) 뒤에 \r이 붙어 빌드가 깨진다.
+# db/schema.sql이나 .dockerignore도 같은 이유로 LF로 고정하는 편이 안전하다.
+#
+# 바이너리 파일은 text=auto가 알아서 감지해 건드리지 않는다.
+* text=auto eol=lf
