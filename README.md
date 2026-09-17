@@ -278,7 +278,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 배포된 앱은 **https://haru-checkin.fly.dev** 입니다 (Fly.io 도쿄 리전, 머신 1대 + 1GB 볼륨에 SQLite).
 
-배포 방법과 주의할 점은 [DEPLOY.md](DEPLOY.md)에 따로 정리했습니다 — 타임존을 안 맞추면 출석 판정이 조용히 깨지는 문제, 볼륨이 머신 1대에만 붙는 제약, `secure` 쿠키와 `trust proxy`가 짝이어야 하는 이유가 거기 있습니다.
+배포 방법과 주의할 점은 [DEPLOY.md](DEPLOY.md)에 따로 정리했습니다 — 타임존이 안 맞으면 출석 판정이 깨지는 문제(지금은 부팅 시 자동으로 검증해 크래시로 드러납니다), 볼륨이 머신 1대에만 붙는 제약, `secure` 쿠키와 `trust proxy`가 짝이어야 하는 이유가 거기 있습니다.
 
 ## 사용한 것
 
