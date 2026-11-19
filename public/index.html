@@ -25,16 +25,16 @@
 <main id="login" class="card">
   <p class="code-line"><span class="no">[00]</span>/ START</p>
   <h1>오늘도 하루를<br>시작해볼까요?</h1>
-  <p class="muted">닉네임을 정하면 이 기기에 기록이 저장됩니다.</p>
+  <p class="muted">닉네임은 랭킹에 공개돼요. 실명 대신 별명을 써 주세요.</p>
   <form id="login-form">
     <input id="nickname" type="text" placeholder="닉네임" maxlength="20" autocomplete="off" required>
     <button type="submit">시작하기</button>
   </form>
   <p id="login-error" class="error" hidden></p>
-  <p class="note">가입하면 복구 코드를 드려요. 그 코드를 저장해 두면 쿠키를 지워도 기록을 되찾을 수 있어요.</p>
+  <p class="note">가입하면 복구 코드를 드려요. 저장해 두면 브라우저 기록을 지우거나 기기를 바꿔도 기록을 되찾을 수 있어요.</p>
 
   <details id="recover-box">
-    <summary>이미 복구 코드가 있어요</summary>
+    <summary>전에 쓰던 기록 불러오기 (복구 코드)</summary>
     <form id="recover-form">
       <input id="recovery-input" type="text" placeholder="복구 코드를 붙여넣으세요" autocomplete="off" required>
       <button type="submit">기록 불러오기</button>
@@ -46,7 +46,7 @@
 <main id="code-panel" class="card" hidden>
   <p class="code-line"><span class="no">[00]</span>/ RECOVERY CODE</p>
   <h1>복구 코드를<br>저장해 주세요</h1>
-  <p class="muted">이 코드가 있으면 쿠키를 지우거나 다른 기기에서 열어도 기록을 되찾을 수 있어요.</p>
+  <p class="muted">이 코드가 있으면 브라우저 기록을 지우거나 다른 기기에서 열어도 기록을 되찾을 수 있어요.</p>
   <p class="code" id="code-value"></p>
   <div class="row">
     <button id="code-copy" class="ghost small" type="button">복사</button>
@@ -120,6 +120,7 @@
         <p class="label solo"><span class="ko">목표 하루 시작 시간</span></p>
         <p class="big" id="goal-display"></p>
         <p class="muted" id="window-hint"></p>
+        <p class="muted">늦게 누르거나 하루를 건너뛰면 현재 연속이 0부터 다시 시작돼요.</p>
       </div>
       <button id="edit-settings" class="ghost">변경</button>
     </div>
@@ -171,6 +172,7 @@
   <section class="card">
     <div class="head"><span class="code-line"><span class="no">[06]</span>/ RANKING</span><span class="ko">최고기록 랭킹</span></div>
     <ol id="leaderboard" class="leaderboard"></ol>
+    <p class="muted rank-note">최고기록이 1일 이상이면 랭킹에 올라가요.</p>
   </section>
 
   <section class="card">

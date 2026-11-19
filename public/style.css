@@ -698,3 +698,5 @@ button.danger:hover:not(:disabled) { background: var(--error); border-color: var
 .ratio { height: 4px; margin-top: var(--s-2); background: var(--bg-sunk); }
 .ratio i { display: block; height: 100%; width: 0; background: var(--ink); transition: width var(--t-mid) var(--ease); }
 .month-note { margin-top: var(--s-2); }
+
+.rank-note { margin-top: var(--s-2); }

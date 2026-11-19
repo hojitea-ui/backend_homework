@@ -393,7 +393,7 @@ async function renderUser() {
   $('recovery-error').hidden = true;
   $('recovery-status').textContent = user.has_recovery_code
     ? '발급되어 있어요. 코드는 다시 볼 수 없고 새로 발급만 됩니다.'
-    : '아직 없어요. 발급해 두면 쿠키를 지워도 기록을 되찾을 수 있어요.';
+    : '아직 없어요. 발급해 두면 브라우저 기록을 지우거나 기기를 바꿔도 기록을 되찾을 수 있어요.';
 }
 
 // 날씨 그림. 서버는 WMO 코드를 한글 상태로 바꿔 주므로(src/weather.js) 그 글자로 고른다.

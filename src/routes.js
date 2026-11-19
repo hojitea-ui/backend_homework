@@ -61,7 +61,7 @@ function cleanNickname(raw) {
 function me(req) {
   const user = q.byId.get(req.session.userId);
   // 세션은 살아 있는데 사용자가 사라진 경우 (DB를 비웠을 때 등)
-  if (!user) throw new HttpError(401, '기록을 찾을 수 없어요. 닉네임을 다시 정해 주세요.');
+  if (!user) throw new HttpError(401, "기록을 찾을 수 없어요. 복구 코드가 있으면 '전에 쓰던 기록 불러오기'에서 되찾을 수 있어요.");
   return user;
 }
 
@@ -158,7 +158,8 @@ router.post('/signup', (req, res) => {
   const nickname = cleanNickname(req.body?.nickname);
 
   if (q.byNick.get(nickname)) {
-    throw new HttpError(409, `'${nickname}'은(는) 이미 사용 중이에요. 다른 닉네임을 써 주세요.`);
+    // 다른 기기에서 자기 닉네임을 넣은 경우가 많다. 새 닉네임을 만들면 기존 기록과 갈라지므로 복구 경로를 같이 알린다
+    throw new HttpError(409, `'${nickname}'은(는) 이미 사용 중이에요. 내 닉네임이라면 아래 '전에 쓰던 기록 불러오기'에서 복구 코드로 불러오세요.`);
   }
 
   // 코드는 이 응답에서 딱 한 번 나간다. 해시만 저장하므로 서버도 다시 알려줄 수 없다.
