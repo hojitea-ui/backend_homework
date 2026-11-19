@@ -389,19 +389,64 @@ async function renderUser() {
     : '아직 없어요. 발급해 두면 쿠키를 지워도 기록을 되찾을 수 있어요.';
 }
 
+// 날씨 그림. 서버는 WMO 코드를 한글 상태로 바꿔 주므로(src/weather.js) 그 글자로 고른다.
+// 고정된 SVG 문자열만 넣고 서버 값은 innerHTML에 넣지 않는다.
+const WX = {
+  sun: '<circle class="fill" cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/>',
+  moon: '<path class="fill" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+  partly: '<circle class="fill" cx="8" cy="8" r="3"/><path d="M8 2.5v1.5M2.5 8H4M4.1 4.1l1 1M11.9 4.1l-1 1"/><path d="M7 19h10a4 4 0 0 0 0-8 5 5 0 0 0-9.6 1.5A3.3 3.3 0 0 0 7 19z"/>',
+  cloud: '<path d="M6.5 19h11a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.4 2A3.5 3.5 0 0 0 6.5 19z"/>',
+  fog: '<path d="M6.5 14h11a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.4 2A3.5 3.5 0 0 0 6.5 14z"/><path d="M4 18h16M6 21.5h12"/>',
+  rain: '<path d="M6.5 15h11a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.4 2A3.5 3.5 0 0 0 6.5 15z"/><path d="M8 18l-1 3M12 18l-1 3M16 18l-1 3"/>',
+  snow: '<path d="M6.5 15h11a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.4 2A3.5 3.5 0 0 0 6.5 15z"/><path d="M8 19h.01M12 21h.01M16 19h.01M10 22.5h.01M14 22.5h.01" stroke-width="2.4"/>',
+  storm: '<path d="M6.5 14h11a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.4 2A3.5 3.5 0 0 0 6.5 14z"/><path class="fill" d="M12.5 14l-3 5h3l-1.5 4 4.5-6h-3l1.5-3z" stroke-linejoin="round"/>',
+};
+
+function weatherKind(condition) {
+  if (!condition) return null;
+  if (condition.includes('뇌우')) return 'storm';
+  if (condition.includes('눈') || condition.includes('진눈깨비')) return 'snow';
+  if (condition.includes('비') || condition.includes('소나기')) return 'rain';
+  if (condition.includes('안개')) return 'fog';
+  if (condition === '흐림') return 'cloud';
+  if (condition === '대체로 맑음' || condition === '구름 조금') return 'partly';
+  if (condition === '맑음') {
+    // 해가 없는 시간대(황혼·밤)에는 달. 배경 하늘과 같은 판정을 쓴다
+    const sky = document.documentElement.dataset.sky;
+    return sky === 'night' || sky === 'dusk' ? 'moon' : 'sun';
+  }
+  return null; // '날씨를 불러올 수 없음' 등은 그림 없이 글자만
+}
+
 async function renderWeather() {
   const w = await api('/me/weather');
   const temp = w.temp_c === null ? '--' : `${Math.round(w.temp_c)}°`;
   $('weather').innerHTML = '';
 
+  const now = document.createElement('div');
+  now.className = 'now';
+  const kind = weatherKind(w.condition);
+  if (kind) {
+    const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    icon.setAttribute('class', 'wx');
+    icon.setAttribute('viewBox', '0 0 24 24');
+    icon.setAttribute('fill', 'none');
+    icon.setAttribute('stroke', 'currentColor');
+    icon.setAttribute('stroke-width', '1.6');
+    icon.setAttribute('stroke-linecap', 'round');
+    icon.setAttribute('aria-hidden', 'true');
+    icon.innerHTML = WX[kind];
+    now.append(icon);
+  }
   const strong = document.createElement('strong');
   strong.textContent = temp;
+  now.append(strong);
   const label = document.createElement('span');
   // 지역 이름은 바로 아래 [LOC] 버튼이 보여 주므로 여기선 날씨 상태만
   label.textContent = w.condition;
   $('location-label').textContent = w.location_name;
 
-  $('weather').append(strong, label);
+  $('weather').append(now, label);
 }
 
 const STATUS_LABEL = { success: '성공', fail: '실패', absent: '기록 없음' };

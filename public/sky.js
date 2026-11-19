@@ -16,7 +16,11 @@ function skyFor(date = new Date()) {
 }
 
 function applySky() {
-  document.documentElement.dataset.sky = skyFor();
+  const now = new Date();
+  const root = document.documentElement;
+  root.dataset.sky = skyFor(now);
+  // 상단 하루 막대의 지금 시각 눈금(0~1). 하늘 구간과 같은 시계를 쓴다.
+  root.style.setProperty('--now', ((now.getHours() * 60 + now.getMinutes()) / 1440).toFixed(4));
 }
 
 applySky();
