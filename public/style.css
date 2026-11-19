@@ -684,3 +684,12 @@ button.danger:hover:not(:disabled) { background: var(--error); border-color: var
 .credit dd { margin: 0; }
 .credit a { color: var(--sel); text-decoration: underline; text-decoration-color: var(--sel-ring); text-underline-offset: 3px; }
 .credit a:hover { text-decoration-color: var(--sel); }
+
+/* ── 이번 달 성공 일수: 기록 카드 아래 한 줄 + 4px 비율 막대(먹색, 강조색 아님) ── */
+.month { margin-top: var(--s-4); padding-top: var(--s-3); border-top: 1px solid var(--line); }
+.month .row { align-items: baseline; }
+.month-read { font: 500 var(--fs-5)/1.2 var(--mono); color: var(--ink); white-space: nowrap; }
+.month-of { color: var(--ink-3); font-weight: 400; }
+.ratio { height: 4px; margin-top: var(--s-2); background: var(--bg-sunk); }
+.ratio i { display: block; height: 100%; width: 0; background: var(--ink); transition: width var(--t-mid) var(--ease); }
+.month-note { margin-top: var(--s-2); }

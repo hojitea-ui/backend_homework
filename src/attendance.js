@@ -94,3 +94,30 @@ export const checkIn = db.transaction((userId, now = new Date()) => {
 
   return { ...q.user.get(userId), today: q.todayRow.get(userId, checkDate) };
 });
+
+// 이번 달 성공 일수. 연속 기록은 엄격하게 두고(하루 빠지면 끊긴다),
+// 끊겨도 의미가 남는 숫자를 하나 더 보여 주려고 만든 값이다. 판정 규칙은 바꾸지 않는다.
+//   분자 success : 기간 안의 성공(is_success = 1) 날 수
+//   분모 days    : 기간의 날 수. 기간 = 이번 달 1일(이번 달에 가입했으면 가입일) ~ 마지막으로 판정이 끝난 날
+//                  오늘은 출석했을 때만 넣는다. 아침에 열자마자 오늘이 실패로 보이지 않게.
+//                  1일에 아직 출석 전이면 기간이 비어 days = 0
+const monthQ = db.prepare(`
+  WITH r AS (
+    SELECT max(date(@today, 'start of month'), substr(created_at, 1, 10)) AS from_date,
+           CASE WHEN EXISTS (SELECT 1 FROM attendance WHERE user_id = @id AND check_date = @today)
+                THEN @today ELSE date(@today, '-1 day') END AS to_date
+      FROM users WHERE id = @id
+  )
+  SELECT from_date, to_date,
+         max(0, CAST(julianday(to_date) - julianday(from_date) AS INTEGER) + 1) AS days,
+         (SELECT count(*) FROM attendance a
+           WHERE a.user_id = @id AND a.is_success = 1
+             AND a.check_date BETWEEN r.from_date AND r.to_date) AS success
+    FROM r
+`);
+
+export function monthSummary(userId, now = new Date()) {
+  const row = monthQ.get({ id: userId, today: localDate(now) });
+  if (!row) return { success: 0, days: 0, from: null, to: null };
+  return { success: row.success, days: row.days, from: row.from_date, to: row.to_date };
+}

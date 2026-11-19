@@ -133,6 +133,33 @@ db.prepare("INSERT INTO users (id, nickname, best_streak) VALUES (2, 'zero', 0)"
 const board = db.prepare('SELECT nickname FROM v_leaderboard').all().map((r) => r.nickname);
 check('랭킹에서 0일은 제외된다', !board.includes('zero'), `랭킹=${board.join(',')}`);
 
+// ── 이번 달 성공 일수 (4월 10일 가입, 목표 06:30) ──
+console.log('');
+console.log('이번 달 성공 일수');
+const { monthSummary } = await import('../src/attendance.js');
+db.prepare("INSERT INTO users (id, nickname, created_at) VALUES (3, 'month', '2026-04-10 21:00:00')").run();
+db.prepare("INSERT INTO user_settings (user_id, goal_time) VALUES (3, '06:30')").run();
+checkIn(3, at('2026-04-10', '06:00')); // 성공 (가입일 아침이라 created_at보다 이르지만 날짜로 센다)
+checkIn(3, at('2026-04-11', '08:00')); // 실패
+// 4월 12일 결석
+checkIn(3, at('2026-04-13', '06:00')); // 성공
+
+const m1 = monthSummary(3, at('2026-04-13', '09:00'));
+check('가입일부터 센다, 오늘 출석했으면 오늘 포함', m1.success === 2 && m1.days === 4 && m1.from === '2026-04-10',
+  JSON.stringify(m1));
+
+const m2 = monthSummary(3, at('2026-04-14', '05:00'));
+check('오늘 아직 출석 전이면 어제까지만 센다', m2.success === 2 && m2.days === 4 && m2.to === '2026-04-13',
+  JSON.stringify(m2));
+
+const m3 = monthSummary(3, at('2026-05-01', '05:00'));
+check('새 달 1일 출석 전에는 0/0', m3.success === 0 && m3.days === 0, JSON.stringify(m3));
+
+checkIn(3, at('2026-05-01', '06:00'));
+const m4 = monthSummary(3, at('2026-05-01', '07:00'));
+check('지난달 성공은 이번 달에 섞이지 않는다', m4.success === 1 && m4.days === 1 && m4.from === '2026-05-01',
+  JSON.stringify(m4));
+
 console.log('');
 console.log(failed === 0 ? '전체 통과' : `${failed}개 실패`);
 process.exit(failed === 0 ? 0 : 1);

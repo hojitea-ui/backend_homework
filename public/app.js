@@ -362,6 +362,7 @@ async function renderUser() {
 
   $('best-streak').textContent = `${user.best_streak}일`;
   $('current-streak').textContent = `${user.current_streak}일`;
+  renderMonth(user.month);
 
   if (user.today) {
     $('check-in').disabled = true;
@@ -416,6 +417,17 @@ function weatherKind(condition) {
     return sky === 'night' || sky === 'dusk' ? 'moon' : 'sun';
   }
   return null; // '날씨를 불러올 수 없음' 등은 그림 없이 글자만
+}
+
+// 이번 달 성공 일수. 서버가 기간(1일 또는 가입일 ~ 판정이 끝난 날)과 함께 계산해 준다.
+function renderMonth(month) {
+  const { success = 0, days = 0 } = month ?? {};
+  $('month-success').textContent = `${success}일`;
+  $('month-of').textContent = days > 0 ? ` / ${days}일` : '';
+  $('month-bar').style.width = days > 0 ? `${(success / days) * 100}%` : '0';
+  // 1일 아침처럼 아직 판정이 끝난 날이 없으면 0/0 대신 안내를 보여 준다
+  $('month-note').hidden = days > 0;
+  $('month-note').textContent = days > 0 ? '' : '이번 달 첫 출석을 기다리고 있어요.';
 }
 
 async function renderWeather() {

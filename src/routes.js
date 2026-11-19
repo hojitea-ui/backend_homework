@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import express from 'express';
 import { db, localDate } from './db.js';
-import { checkIn, checkInWindow } from './attendance.js';
+import { checkIn, checkInWindow, monthSummary } from './attendance.js';
 import { geocode } from './geocode.js';
 import { getWeather } from './weather.js';
 import { requireSession, SESSION_COOKIE_NAME } from './session.js';
@@ -182,6 +182,8 @@ router.get('/me', requireSession, (req, res) => {
     checkin_window: checkInWindow(settings.goal_time),
     today: q.todayRow.get(user.id, localDate()) ?? null,
     server_date: localDate(),
+    // 이번 달 성공 일수 { success, days, from, to }. 연속 기록과 별개로 보여 준다
+    month: monthSummary(user.id),
   });
 });
 
