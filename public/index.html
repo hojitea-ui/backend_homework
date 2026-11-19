@@ -119,6 +119,7 @@
         <p class="code-line"><span class="no">[02]</span>/ GOAL</p>
         <p class="label solo"><span class="ko">목표 하루 시작 시간</span></p>
         <p class="big" id="goal-display"></p>
+        <p class="goal-next" id="goal-next" hidden></p>
         <p class="muted" id="window-hint"></p>
         <p class="muted rule-hint">늦게 누르거나 하루를 건너뛰면 현재 연속이 0부터 다시 시작돼요.</p>
       </div>
@@ -127,6 +128,7 @@
 
     <form id="settings-form" hidden>
       <label>목표 시간 <input id="goal-time" type="time" required></label>
+      <p class="muted">첫 출석을 한 뒤에는 바꾼 시간이 내일부터 적용돼요. 오늘 판정은 지금 목표 그대로예요.</p>
       <div class="row">
         <button type="submit" id="save-settings">저장</button>
         <button type="button" id="cancel-settings" class="ghost">취소</button>

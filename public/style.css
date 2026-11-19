@@ -704,3 +704,17 @@ button.danger:hover:not(:disabled) { background: var(--error); border-color: var
 .rank-note { margin-top: var(--s-2); }
 /* 성공 시간 안내와 규칙 안내는 다른 이야기라 한 줄 띄운다 */
 .rule-hint { margin-top: var(--s-1); }
+
+/* ── 화면 점검 보정 ── */
+/* 출석 완료는 "못 누름"이 아니라 "끝남"이다. 흐린 점선 대신 먹색 실선 + ■로 보여 준다 */
+button.primary.done:disabled { opacity: 1; border-style: solid; color: var(--ink); cursor: default; }
+button.primary.done::before { content: "■ "; }
+/* 폼의 저장·취소는 양 끝으로 벌리지 않고 왼쪽에 나란히 */
+form .row { justify-content: flex-start; gap: var(--s-2); }
+/* 지역 칩 7개를 4 + 3으로. 한 줄에 하나만 떨어지지 않게 */
+.chips { display: grid; grid-template-columns: repeat(4, 1fr); }
+button.chip { justify-content: center; }
+/* 출석 카드도 머리는 다른 카드처럼 왼쪽. 버튼과 결과 문장만 가운데 */
+.card.center .code-line { text-align: left; }
+/* 목표 시간 변경 예정: 내일부터 적용되는 값 */
+.goal-next { margin-top: var(--s-1); color: var(--sel); font-weight: 600; }

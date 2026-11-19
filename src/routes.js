@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import express from 'express';
 import { db, localDate } from './db.js';
-import { checkIn, checkInWindow, monthSummary } from './attendance.js';
+import { checkIn, checkInWindow, monthSummary, currentSettings, changeGoal } from './attendance.js';
 import { geocode } from './geocode.js';
 import { getWeather } from './weather.js';
 import { requireSession, SESSION_COOKIE_NAME } from './session.js';
@@ -171,7 +171,8 @@ router.post('/signup', (req, res) => {
 
 router.get('/me', requireSession, (req, res) => {
   const user = me(req);
-  const settings = q.settings.get(user.id);
+  // 적용 날짜가 된 예정 목표를 먼저 반영해야 화면의 목표·출석 창이 판정과 맞는다
+  const settings = currentSettings(user.id);
   res.json({
     ...publicUser(user),
     settings,
@@ -205,9 +206,10 @@ router.put('/me/nickname', requireSession, (req, res) => {
 
 router.put('/me/settings', requireSession, async (req, res) => {
   const user = me(req);
-  const current = q.settings.get(user.id);
+  const current = currentSettings(user.id);
 
-  const goalTime = String(req.body?.goal_time ?? current.goal_time);
+  // 목표 시간을 보내지 않으면(지역만 바꿀 때) 예정 목표까지 그대로 둔다
+  const goalTime = String(req.body?.goal_time ?? current.pending_goal_time ?? current.goal_time);
   if (!GOAL_TIME_PATTERN.test(goalTime)) {
     throw new HttpError(400, '목표 시간은 HH:MM 형식이어야 합니다.');
   }
@@ -220,8 +222,12 @@ router.put('/me/settings', requireSession, async (req, res) => {
     ? { location_name: current.location_name, latitude: current.latitude, longitude: current.longitude }
     : await geocode(locationName);
 
-  q.updateSettings.run(goalTime, place.location_name, place.latitude, place.longitude, user.id);
-  res.json(q.settings.get(user.id));
+  // 지역은 바로, 목표 시간은 changeGoal 규칙대로(첫 출석 이후엔 내일부터)
+  q.updateSettings.run(current.goal_time, place.location_name, place.latitude, place.longitude, user.id);
+  const goal = req.body?.goal_time === undefined
+    ? { applied: 'unchanged', settings: q.settings.get(user.id) }
+    : changeGoal(user.id, goalTime);
+  res.json({ ...goal.settings, goal_applied: goal.applied });
 });
 
 router.post('/me/attendance', requireSession, (req, res) => {

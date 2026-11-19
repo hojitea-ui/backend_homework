@@ -174,6 +174,44 @@ check('가입일이 아니라 첫 출석일부터 센다', m6.success === 1 && m
 const m7 = monthSummary(4, at('2026-04-07', '05:00'));
 check('첫 출석 뒤의 결석은 센다', m7.success === 1 && m7.days === 2, JSON.stringify(m7));
 
+// ── 목표 시간 변경은 첫 출석 이후엔 내일부터 ──
+console.log('');
+console.log('목표 시간 변경');
+const { changeGoal, currentSettings } = await import('../src/attendance.js');
+db.prepare("INSERT INTO users (id, nickname) VALUES (5, 'goal')").run();
+db.prepare("INSERT INTO user_settings (user_id, goal_time) VALUES (5, '06:30')").run();
+const goalOf = (now) => currentSettings(5, now);
+const dayRow = (date) => db.prepare(
+  'SELECT is_success, goal_time_snapshot FROM attendance WHERE user_id = 5 AND check_date = ?'
+).get(date);
+
+const g1 = changeGoal(5, '06:20', at('2026-06-01', '22:00'));
+check('첫 출석 전에는 바로 적용', g1.applied === 'now' && goalOf(at('2026-06-01', '22:00')).goal_time === '06:20',
+  JSON.stringify(g1));
+
+checkIn(5, at('2026-06-02', '06:10'));
+
+const g2 = changeGoal(5, '09:00', at('2026-06-03', '08:00'));
+const s2 = goalOf(at('2026-06-03', '08:01'));
+check('첫 출석 뒤에는 예정으로만 저장', g2.applied === 'tomorrow' && s2.goal_time === '06:20'
+  && s2.pending_goal_time === '09:00' && s2.pending_from === '2026-06-04', JSON.stringify(s2));
+
+checkIn(5, at('2026-06-03', '08:05'));
+check('바꾼 당일 늦은 출석은 원래 목표로 실패', dayRow('2026-06-03')?.is_success === 0
+  && dayRow('2026-06-03')?.goal_time_snapshot === '06:20', JSON.stringify(dayRow('2026-06-03')));
+
+checkIn(5, at('2026-06-04', '08:30'));
+check('다음 날부터 새 목표로 판정', dayRow('2026-06-04')?.is_success === 1
+  && dayRow('2026-06-04')?.goal_time_snapshot === '09:00', JSON.stringify(dayRow('2026-06-04')));
+const s3 = goalOf(at('2026-06-04', '09:00'));
+check('적용되면 예정은 비워진다', s3.goal_time === '09:00' && s3.pending_goal_time === null, JSON.stringify(s3));
+
+changeGoal(5, '07:00', at('2026-06-04', '10:00'));
+const g4 = changeGoal(5, '09:00', at('2026-06-04', '10:05'));
+const s4 = goalOf(at('2026-06-04', '10:06'));
+check('지금 목표로 되돌리면 예정 취소', g4.applied === 'unchanged' && s4.pending_goal_time === null
+  && s4.goal_time === '09:00', JSON.stringify(s4));
+
 console.log('');
 console.log(failed === 0 ? '전체 통과' : `${failed}개 실패`);
 process.exit(failed === 0 ? 0 : 1);

@@ -27,6 +27,25 @@ export function checkInWindow(goalTime) {
 
 const q = {
   settings: db.prepare('SELECT * FROM user_settings WHERE user_id = ?'),
+  promoteGoal: db.prepare(`
+    UPDATE user_settings
+       SET goal_time = pending_goal_time, pending_goal_time = NULL, pending_from = NULL,
+           updated_at = datetime('now', 'localtime')
+     WHERE user_id = ? AND pending_goal_time IS NOT NULL AND pending_from <= ?
+  `),
+  setGoalNow: db.prepare(`
+    UPDATE user_settings
+       SET goal_time = ?, pending_goal_time = NULL, pending_from = NULL,
+           updated_at = datetime('now', 'localtime')
+     WHERE user_id = ?
+  `),
+  setGoalPending: db.prepare(`
+    UPDATE user_settings
+       SET pending_goal_time = ?, pending_from = date(?, '+1 day'),
+           updated_at = datetime('now', 'localtime')
+     WHERE user_id = ?
+  `),
+  everCheckedIn: db.prepare('SELECT 1 FROM attendance WHERE user_id = ? LIMIT 1'),
   todayRow: db.prepare('SELECT * FROM attendance WHERE user_id = ? AND check_date = ?'),
   user: db.prepare('SELECT * FROM users WHERE id = ?'),
   insert: db.prepare(`
@@ -57,7 +76,7 @@ export class CheckInError extends Error {
 
 // now를 인자로 받는 이유: 여러 날에 걸친 스트릭 로직을 테스트하려면 날짜를 주입할 수 있어야 한다.
 export const checkIn = db.transaction((userId, now = new Date()) => {
-  const settings = q.settings.get(userId);
+  const settings = currentSettings(userId, now);
   if (!settings) throw new CheckInError(404, '사용자를 찾을 수 없습니다.');
 
   const checkDate = localDate(now);
@@ -124,3 +143,32 @@ export function monthSummary(userId, now = new Date()) {
   if (!row) return { success: 0, days: 0, from: null, to: null };
   return { success: row.success, days: row.days, from: row.from_date, to: row.to_date };
 }
+
+// ── 목표 시간 변경은 다음 날부터 ──
+// 출석 판정은 누르는 순간의 목표 시간을 쓴다. 그래서 08:00에 일어나 목표를 09:00으로 바꾸고
+// 누르면 성공이 되던 구멍이 있었다. 첫 출석 이후의 변경은 '예정'으로만 저장하고 다음 날부터 쓴다.
+// 첫 출석 전(도전 시작 전 미리 맞춰 두는 경우)에는 바로 적용한다.
+
+// 적용 날짜가 된 예정 목표를 실제 목표로 옮긴 뒤 설정을 돌려준다. 읽을 때마다 부르면 된다.
+export function currentSettings(userId, now = new Date()) {
+  q.promoteGoal.run(userId, localDate(now));
+  return q.settings.get(userId);
+}
+
+// 목표 시간 변경. { applied: 'now' | 'tomorrow' | 'unchanged', settings }
+export const changeGoal = db.transaction((userId, goalTime, now = new Date()) => {
+  const current = currentSettings(userId, now);
+  if (!current) throw new CheckInError(404, '사용자를 찾을 수 없습니다.');
+
+  // 지금 목표와 같은 값으로 되돌리면 예정을 취소한다
+  if (goalTime === current.goal_time) {
+    if (current.pending_goal_time !== null) q.setGoalNow.run(goalTime, userId);
+    return { applied: 'unchanged', settings: q.settings.get(userId) };
+  }
+  if (!q.everCheckedIn.get(userId)) {
+    q.setGoalNow.run(goalTime, userId);
+    return { applied: 'now', settings: q.settings.get(userId) };
+  }
+  q.setGoalPending.run(goalTime, localDate(now), userId);
+  return { applied: 'tomorrow', settings: q.settings.get(userId) };
+});

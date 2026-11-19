@@ -360,7 +360,11 @@ async function renderUser() {
   $('name-form').hidden = true;
   $('edit-name').hidden = false;
   $('name-error').hidden = true;
-  $('goal-time').value = goal;
+  // 예정된 목표가 있으면 폼에는 그 값을, 카드에는 '내일부터'로 함께 보여 준다
+  const next = user.settings.pending_goal_time;
+  $('goal-next').hidden = !next;
+  $('goal-next').textContent = next ? `내일부터 ${next}` : '';
+  $('goal-time').value = next ?? goal;
   myLocation = user.settings.location_name;
   $('location-label').textContent = myLocation;
   $('coord-hint').textContent =
@@ -372,6 +376,7 @@ async function renderUser() {
 
   if (user.today) {
     $('check-in').disabled = true;
+    $('check-in').classList.add('done');
     $('check-in').textContent = '오늘 출석 완료';
     if ($('check-result').hidden) {
       const time = user.today.checked_at.slice(11, 16);
@@ -384,6 +389,7 @@ async function renderUser() {
     }
   } else {
     $('check-in').disabled = false;
+    $('check-in').classList.remove('done');
     $('check-in').textContent = '출석 체크';
     // 복구로 다른 사용자가 들어왔을 때 앞사람의 출석 메시지가 남지 않게 지운다
     $('check-result').hidden = true;

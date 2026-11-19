@@ -36,6 +36,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_users_recovery_code ON users (recovery_cod
 CREATE TABLE IF NOT EXISTS user_settings (
     user_id       INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     goal_time     TEXT NOT NULL DEFAULT '06:00',   -- 새 DB용. 앱은 routes.js의 DEFAULT_GOAL_TIME을 쓴다
+    -- 목표 시간 변경 예정. 출석 직전에 목표를 늦춰 실패를 성공으로 바꾸는 걸 막으려고
+    -- 첫 출석 이후의 변경은 다음 날부터 적용한다(attendance.js의 changeGoal / currentSettings)
+    pending_goal_time TEXT,   -- 'HH:MM' 또는 NULL
+    pending_from      TEXT,   -- 'YYYY-MM-DD', 이 날부터 pending_goal_time이 goal_time이 된다
     location_name TEXT NOT NULL DEFAULT '서울',
     latitude      REAL NOT NULL DEFAULT 37.5665,
     longitude     REAL NOT NULL DEFAULT 126.9780,

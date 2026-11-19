@@ -15,6 +15,15 @@ if (usersColumns.length > 0 && !usersColumns.includes('recovery_code_hash')) {
   console.log('  (기존 사용자는 NULL입니다 — 로그인 후 재발급하면 생깁니다)');
 }
 
+// 목표 시간 '내일부터 적용'용 컬럼. CREATE TABLE IF NOT EXISTS는 기존 테이블에 컬럼을 더하지 않으므로 직접 추가한다
+const settingsColumns = columnsOf('user_settings');
+for (const col of ['pending_goal_time', 'pending_from']) {
+  if (settingsColumns.length > 0 && !settingsColumns.includes(col)) {
+    db.exec(`ALTER TABLE user_settings ADD COLUMN ${col} TEXT`);
+    console.log(`user_settings.${col} 컬럼을 추가했습니다`);
+  }
+}
+
 const schema = fs.readFileSync('./db/schema.sql', 'utf-8');
 db.exec(schema);
 
