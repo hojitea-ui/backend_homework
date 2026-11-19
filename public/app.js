@@ -210,18 +210,24 @@ $('check-in').addEventListener('click', async () => {
     await Promise.all([renderUser(), renderRecent(), renderLeaderboard()]);
   } catch (err) {
     if (err.status === 401) return showLogin();
-    setResult(err.message, 'fail');
+    // '아직 이르다' 같은 거절은 다시 누를 수 있는 일시적인 안내라 잠시 보여 주고 거둔다
+    setResult(err.message, 'fail', 5000);
     // 버튼 상태는 DB의 오늘 기록을 보고 다시 결정한다.
     // '너무 이르다'고 거절된 경우엔 아침에 다시 누를 수 있어야 하므로 잠그면 안 된다.
     await renderUser();
   }
 });
 
-function setResult(message, kind) {
+// hideAfter(ms)를 주면 그만큼 뒤에 저절로 사라진다. 출석 결과처럼 남아야 하는 문구는 주지 않는다.
+// 새 문구가 오면 앞 문구의 타이머는 취소한다. 안 그러면 새 문구가 남의 타이머에 지워진다.
+let resultTimer = null;
+function setResult(message, kind, hideAfter) {
+  clearTimeout(resultTimer);
   const el = $('check-result');
   el.textContent = message;
   el.className = `result ${kind}`;
   el.hidden = false;
+  if (hideAfter) resultTimer = setTimeout(() => { el.hidden = true; }, hideAfter);
 }
 
 // ── 복구 코드 ────────────────────────────────
