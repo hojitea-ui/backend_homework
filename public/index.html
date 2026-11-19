@@ -4,13 +4,24 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>오늘도 하루를 시작해볼까요?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@300;400;600;700&display=swap">
 <link rel="stylesheet" href="style.css">
 <!-- 첫 페인트 전에 배경을 정해야 색이 번쩍이지 않는다 -->
 <script src="sky.js"></script>
 </head>
 <body>
 
+<div class="status"><div class="wrap">
+  <span>MORNING CHECK-IN</span><span class="rule"></span>
+  <span class="meter sky"></span>
+</div></div>
+
+<div class="page">
+
 <main id="login" class="card">
+  <p class="code-line"><span class="no">[00]</span>/ START</p>
   <h1>오늘도 하루를<br>시작해볼까요?</h1>
   <p class="muted">닉네임을 정하면 이 기기에 기록이 저장됩니다.</p>
   <form id="login-form">
@@ -31,6 +42,7 @@
 </main>
 
 <main id="code-panel" class="card" hidden>
+  <p class="code-line"><span class="no">[00]</span>/ RECOVERY CODE</p>
   <h1>복구 코드를<br>저장해 주세요</h1>
   <p class="muted">이 코드가 있으면 쿠키를 지우거나 다른 기기에서 열어도 기록을 되찾을 수 있어요.</p>
   <p class="code" id="code-value"></p>
@@ -45,6 +57,7 @@
 
 <main id="app" hidden>
   <header class="card">
+    <p class="code-line"><span class="no">[01]</span>/ TODAY</p>
     <div class="row">
       <div>
         <p class="muted" id="today-date"></p>
@@ -71,7 +84,8 @@
   <section class="card">
     <div class="row">
       <div>
-        <p class="muted">목표 하루 시작 시간</p>
+        <p class="code-line"><span class="no">[02]</span>/ GOAL</p>
+        <p class="label solo"><span class="ko">목표 하루 시작 시간</span></p>
         <p class="big" id="goal-display"></p>
         <p class="muted" id="window-hint"></p>
       </div>
@@ -91,37 +105,40 @@
   </section>
 
   <section class="card center">
+    <p class="code-line"><span class="no">[03]</span>/ CHECK-IN</p>
     <button id="check-in" class="primary">출석 체크</button>
     <p id="check-result" class="result" hidden></p>
   </section>
 
   <section class="card">
+    <div class="head"><span class="code-line"><span class="no">[04]</span>/ RECORD</span><span class="ko">기록</span></div>
     <div class="row">
       <div>
-        <p class="muted">최고기록</p>
+        <p class="label">BEST<span class="ko">최고기록</span></p>
         <p class="big" id="best-streak"></p>
       </div>
       <div class="right">
-        <p class="muted">현재 연속</p>
+        <p class="label">STREAK<span class="ko">현재 연속</span></p>
         <p class="big" id="current-streak"></p>
       </div>
     </div>
   </section>
 
   <section class="card">
-    <p class="muted">최근 3일</p>
+    <div class="head"><span class="code-line"><span class="no">[05]</span>/ LAST 3 DAYS</span><span class="ko">최근 3일</span></div>
     <ul id="recent" class="recent"></ul>
   </section>
 
   <section class="card">
-    <p class="muted">최고기록 랭킹</p>
+    <div class="head"><span class="code-line"><span class="no">[06]</span>/ RANKING</span><span class="ko">최고기록 랭킹</span></div>
     <ol id="leaderboard" class="leaderboard"></ol>
   </section>
 
   <section class="card">
     <div class="row">
       <div>
-        <p class="muted">복구 코드</p>
+        <p class="code-line"><span class="no">[07]</span>/ RECOVERY</p>
+        <p class="label solo"><span class="ko">복구 코드</span></p>
         <p class="muted" id="recovery-status"></p>
       </div>
       <button id="recovery-regen" class="ghost small">새로 발급</button>
@@ -144,6 +161,13 @@
     </details>
   </section>
 </main>
+
+<footer class="foot" aria-hidden="true">
+  <span class="tag">MORNING CHECK-IN</span>
+  <span class="cmyk"><i></i><i></i><i></i><i></i></span>
+</footer>
+
+</div>
 
 <script src="app.js"></script>
 </body>

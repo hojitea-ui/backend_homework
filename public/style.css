@@ -1,81 +1,85 @@
-/* 기상 시간 앱이라 배경이 여는 시각의 하늘을 따라간다.
-   sky.js가 <html>에 data-sky를 붙이고, 아래 블록들이 변수만 갈아끼운다.
-   그래서 색을 쓰는 규칙은 한 군데도 고칠 필요가 없다. */
+/* 인더스트리얼 에디토리얼 UI 견본(https://objcat.pages.dev/kit/DESIGN.ko.md)에 맞춘 스타일.
+   색·크기·간격은 아래 토큰만 쓴다. 값을 새로 지어내지 않는다.
+
+   예외 하나: 페이지 바탕은 이 앱의 정체성인 시각별 하늘색을 그대로 쓴다(아래 "하늘 배경").
+   지금 하늘 구간은 상단 막대에도 계기 값으로 보여 준다. */
+
+/* ── tokens.css (https://objcat.pages.dev/kit/tokens.css) ── */
 :root {
-  --radius: 12px;
+  --bg: #f3f4f3;
+  --bg-sunk: #e9ebea;
+  --grid: #eceeed;
+  --surface: #fbfbfa;
+  --plate: #ffffff;
+  --dark: #30383d;
+  --line: #d4d9da;
+  --line-strong: #bbc3c5;
+  --ink: #30383d;
+  --ink-2: #4c565c;
+  --ink-3: #646f75;
+  --on-dark: #e7e9e7;
+  --on-dark-2: rgba(231, 233, 231, 0.66);
+  --on-dark-3: rgba(231, 233, 231, 0.2);
 
-  /* 낮 계열 기본값. data-sky가 없어도 읽을 수 있는 상태로 둔다. */
-  --sky: linear-gradient(180deg, #cfe2f2 0%, #eaeff2 50%, #f4f2ed 100%);
-  --sky-fallback: #f4f2ed;
-  --card: rgba(255, 255, 255, 0.88);
-  --line: rgba(35, 34, 31, 0.12);
-  --text: #23221f;
-  --muted: #6d6b64;
-  /* 흰 글씨와의 명암비가 4.91:1. 원래 쓰던 #1d9e75는 3.39:1로
-     WCAG AA(4.5:1)에 못 미쳐서 한 단계 어둡게 잡았다. */
-  --accent: #15805e;
-  --accent-dark: #0f6e56;
-  --on-accent: #ffffff;
-  --fail: #a32d2d;
-  --badge-success-bg: #dcf1e8;
-  --badge-success-fg: #0f6e56;
-  --badge-fail-bg: #fbe6e6;
-  --badge-fail-fg: #a32d2d;
-  --badge-absent-bg: rgba(35, 34, 31, 0.07);
-  --me-bg: #dcf1e8;
+  /* 이 앱의 포인트 색 (명세 1.2: 면용 값과 선용 값을 따로 둔다)
+     키트의 "라임 면 + 파랑 선"을 아침 앱에 맞게 다시 뽑았다.
+     면 = 해 뜨는 살구빛, 선 = 해 뜨기 전 새벽 하늘의 남청.
+     살구를 어둡게 누르면 갈색이 돼서 성격을 잃으므로, 선 역할은 다른 색에게 맡긴다. */
+  --signal: #3d5aa8;        /* 선·점: 포커스, 현재 위치, 링크. --bg 위 5.9:1 */
+  --signal-ink: #314a8f;    /* 선 색 글자. --bg 위 7.6:1 */
+  --signal-tint: rgba(61, 90, 168, 0.1);
+  --signal-ring: rgba(61, 90, 168, 0.2);
+  --signal-on-dark: #9db1ec; /* --dark 위의 점·선. 5.6:1 */
+  --accent: #ffa463;        /* 면 전용: 장 번호 블록, ▸ 칸, 상단 막대 윗줄. 먹색 글자 6.1:1 */
+  --accent-on: #30383d;
+
+  --error: #c8235f;
+  --error-on-dark: #ff6fa8;
+  --change: #fbe86a;
+
+  /* 정체성 서명 (키트의 C·M·Y 자리). 밤 → 여명 → 아침, 하루가 시작되는 세 하늘.
+     작게 반복하는 장식 전용이라 넓은 면에 쓰지 않는다.
+     장밋빛은 오류색(--error #c8235f)보다 훨씬 밝고 분홍 쪽이라 실패와 헷갈리지 않는다. */
+  --id-night: #6e5cd6;
+  --id-dawn: #ee7a9c;
+  --id-morning: #4db8e6;
+  --id-k: #343434;
+  --id-strip: linear-gradient(90deg, var(--id-night) 0 33.3%, var(--id-dawn) 33.3% 66.6%, var(--id-morning) 66.6% 100%);
+
+  --focus: 2px solid var(--signal);
+  --focus-on-dark: 2px solid var(--on-dark);
+
+  --mono: "IBM Plex Mono", "IBM Plex Sans KR", ui-monospace, monospace;
+  --sans: "IBM Plex Sans KR", system-ui, "Malgun Gothic", sans-serif;
+  --fs-1: 10px; --fs-2: 11px; --fs-3: 13px; --fs-4: 15px;
+  --fs-5: 18px; --fs-6: 24px; --fs-7: 30px;
+  --ls-code: 0.08em;
+  --ls-head: 0.14em;
+
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px;
+  --s-6: 32px; --s-7: 48px; --s-8: 72px; --s-9: 96px;
+  --ctl-h: 28px;
+  --gutter: 32px;
+
+  --t-press: .06s;
+  --t-fast: .12s;
+  --t-mid: .22s;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+
+  /* 이 앱 전용: 한 손으로 쓰는 좁은 화면이라 폭을 480px로 묶는다 */
+  --app-w: 480px;
 }
 
-/* 밝은 하늘 ── 카드는 흰색, 글씨는 검정 */
+@media (pointer: coarse) { :root { --ctl-h: 44px; } }
+@media (max-width: 680px) { :root { --gutter: 16px; } }
 
-:root[data-sky="morning"] {
-  --sky: linear-gradient(180deg, #9dc4e8 0%, #c9dcee 42%, #f1ebdf 100%);
-  --sky-fallback: #c9dcee;
-}
-
-:root[data-sky="day"] {
-  --sky: linear-gradient(180deg, #cfe2f2 0%, #eaeff2 50%, #f4f2ed 100%);
-  --sky-fallback: #f4f2ed;
-}
-
-/* 어두운 하늘 ── 카드도 어둡게 만든다.
-   그라데이션 아래쪽이 복숭아색으로 밝아지는데, 카드가 반투명 흰색이면
-   그 위에서 흰 글씨가 안 보인다. 그래서 카드를 짙은 남색 반투명으로 둔다. */
-
-:root[data-sky="dawn"],
-:root[data-sky="dusk"],
-:root[data-sky="night"] {
-  --card: rgba(14, 18, 42, 0.58);
-  --line: rgba(255, 255, 255, 0.16);
-  --text: #f6f4ef;
-  --muted: rgba(246, 244, 239, 0.68);
-  --accent: #3fbf95;
-  --accent-dark: #2fa47e;
-  --on-accent: #06241b;
-  --fail: #ffa8a8;
-  --badge-success-bg: rgba(63, 191, 149, 0.22);
-  --badge-success-fg: #9fe1cb;
-  --badge-fail-bg: rgba(255, 168, 168, 0.20);
-  --badge-fail-fg: #f7c1c1;
-  --badge-absent-bg: rgba(255, 255, 255, 0.10);
-  --me-bg: rgba(63, 191, 149, 0.20);
-}
-
-/* 여명 04:00~07:00. 목표 시간대가 여기 들어 있다. 해가 아직 안 뜬 하늘. */
-:root[data-sky="dawn"] {
-  --sky: linear-gradient(180deg, #16214a 0%, #2c3268 30%, #6b4a72 56%, #c2716b 80%, #e8a273 100%);
-  --sky-fallback: #2c3268;
-}
-
-/* 황혼 17:00~22:00 */
-:root[data-sky="dusk"] {
-  --sky: linear-gradient(180deg, #2a2352 0%, #5b3566 26%, #a8446a 54%, #d9694f 78%, #e89a52 100%);
-  --sky-fallback: #5b3566;
-}
-
-/* 밤 22:00~04:00 */
-:root[data-sky="night"] {
-  --sky: linear-gradient(180deg, #0b1027 0%, #141a3a 55%, #1e2247 100%);
-  --sky-fallback: #141a3a;
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 * { box-sizing: border-box; }
@@ -84,132 +88,424 @@
    특이도로 눌러버려서 숨겨지지 않는다. 그래서 여기서 다시 못 박아 준다. */
 [hidden] { display: none !important; }
 
-body {
-  margin: 0;
-  padding: 24px 16px 48px;
-  background-color: var(--sky-fallback);
-  background-image: var(--sky);
-  color: var(--text);
-  /* 시간대가 넘어갈 때 색이 툭 튀지 않게 */
-  transition: background-color 1.5s ease, color 1.5s ease;
-  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  min-height: 100vh;
-  /* 한글은 기본값(break-all 유사 동작)으로 두면 단어 중간에서 잘린다.
-     keep-all은 띄어쓰기 단위로만 줄을 바꾼다. */
-  word-break: keep-all;
+:focus-visible { outline: var(--focus); outline-offset: 2px; }
+
+/* ── 하늘 배경 ──
+   기상 시간 앱이라 페이지 바탕이 지금 시각의 하늘을 따라간다(sky.js → data-sky).
+   명세의 "읽는 내용은 밝은 바탕에" 규칙은 카드가 지킨다: 카드는 어느 하늘에서도
+   불투명한 --surface라서 글자 대비가 하늘색에 흔들리지 않는다.
+   격자는 하늘과 부딪혀서 뺐다. 대신 하늘을 세 겹으로 그린다.
+     --sky        바탕 그라데이션
+     --sky-glow   빛이 오는 쪽: 해, 지평선 노을, 달무리
+     --sky-detail 구름(밝은 하늘) 또는 별(어두운 하늘)
+   세 겹 모두 화면에 고정해서, 스크롤하면 카드가 창밖 하늘 위를 지나가는 것처럼 보인다. */
+:root {
+  /* 밤·여명·황혼이 나눠 쓰는 별. 타일로 반복하지 않고 화면 전체에 한 번만 흩뿌린다 */
+  --stars:
+    radial-gradient(1.5px 1.5px at 8% 12%, rgba(255,255,255,.9), transparent),
+    radial-gradient(1px 1px at 19% 34%, rgba(255,255,255,.6), transparent),
+    radial-gradient(1.5px 1.5px at 31% 8%, rgba(255,255,255,.8), transparent),
+    radial-gradient(1px 1px at 43% 27%, rgba(255,255,255,.5), transparent),
+    radial-gradient(2px 2px at 57% 15%, rgba(255,255,255,.85), transparent),
+    radial-gradient(1px 1px at 66% 39%, rgba(255,255,255,.55), transparent),
+    radial-gradient(1.5px 1.5px at 78% 22%, rgba(255,255,255,.75), transparent),
+    radial-gradient(1px 1px at 89% 6%, rgba(255,255,255,.6), transparent),
+    radial-gradient(1.5px 1.5px at 94% 31%, rgba(255,255,255,.7), transparent),
+    radial-gradient(1px 1px at 4% 47%, rgba(255,255,255,.45), transparent),
+    radial-gradient(1px 1px at 24% 58%, rgba(255,255,255,.4), transparent),
+    radial-gradient(1.5px 1.5px at 84% 52%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1px 1px at 51% 49%, rgba(255,255,255,.35), transparent),
+    radial-gradient(1px 1px at 72% 64%, rgba(255,255,255,.3), transparent);
+  /* 밝은 하늘의 엷은 구름 몇 조각 */
+  --clouds:
+    radial-gradient(ellipse 34% 7% at 18% 22%, rgba(255,255,255,.55), transparent 70%),
+    radial-gradient(ellipse 26% 5% at 30% 25%, rgba(255,255,255,.4), transparent 70%),
+    radial-gradient(ellipse 30% 6% at 80% 44%, rgba(255,255,255,.45), transparent 70%),
+    radial-gradient(ellipse 22% 4% at 70% 47%, rgba(255,255,255,.35), transparent 70%),
+    radial-gradient(ellipse 40% 8% at 40% 70%, rgba(255,255,255,.3), transparent 70%);
+
+  /* 기본값은 낮 하늘. data-sky가 없어도 읽을 수 있는 상태로 둔다 */
+  --sky: linear-gradient(180deg, #a9cdec 0%, #cfe2f2 45%, #eef1f1 100%);
+  --sky-glow: radial-gradient(ellipse 90% 55% at 50% -12%, rgba(255,255,255,.75), transparent 70%);
+  --sky-detail: var(--clouds);
+  --sky-fallback: #cfe2f2;
+  --sky-rule: rgba(48, 56, 61, 0.14);
+}
+/* 아침 07:00~11:00 ── 오른쪽 위에서 해가 비춘다 */
+:root[data-sky="morning"] {
+  --sky: linear-gradient(180deg, #86b6e3 0%, #b9d4ee 45%, #f3e9da 100%);
+  --sky-glow:
+    radial-gradient(circle at 86% 6%, rgba(255,248,226,.95) 0, rgba(255,240,205,.55) 6%, rgba(255,232,190,.2) 18%, transparent 38%);
+  --sky-detail: var(--clouds);
+  --sky-fallback: #b9d4ee;
+}
+/* 낮 11:00~17:00 ── 머리 위가 밝은 맑은 하늘 */
+:root[data-sky="day"] {
+  --sky: linear-gradient(180deg, #a9cdec 0%, #cfe2f2 45%, #eef1f1 100%);
+  --sky-glow: radial-gradient(ellipse 90% 55% at 50% -12%, rgba(255,255,255,.75), transparent 70%);
+  --sky-detail: var(--clouds);
+  --sky-fallback: #cfe2f2;
+}
+:root[data-sky="dawn"],
+:root[data-sky="dusk"],
+:root[data-sky="night"] {
+  --sky-rule: rgba(231, 233, 231, 0.2);
+}
+/* 여명 04:00~07:00. 목표 시간대가 여기 들어 있다.
+   해가 아직 안 떴다: 위는 별이 남은 남색, 아래 지평선만 붉게 달아오른다 */
+:root[data-sky="dawn"] {
+  --sky: linear-gradient(180deg, #121c42 0%, #27306a 32%, #5e4775 58%, #b36a6c 82%, #e39c73 100%);
+  --sky-glow: radial-gradient(ellipse 110% 38% at 50% 104%, rgba(255,196,140,.6), rgba(255,170,120,.2) 55%, transparent 75%);
+  --sky-detail: var(--stars);
+  --sky-fallback: #27306a;
+}
+/* 황혼 17:00~22:00 ── 왼쪽 아래로 해가 지고, 위쪽엔 첫 별 */
+:root[data-sky="dusk"] {
+  --sky: linear-gradient(180deg, #241f4d 0%, #523263 28%, #9a4268 55%, #d0654f 80%, #e5964f 100%);
+  --sky-glow: radial-gradient(ellipse 80% 36% at 22% 104%, rgba(255,186,100,.6), rgba(255,150,90,.2) 55%, transparent 75%);
+  --sky-detail: var(--stars);
+  --sky-fallback: #523263;
+}
+/* 밤 22:00~04:00 ── 오른쪽 위 달무리와 별 */
+:root[data-sky="night"] {
+  --sky: linear-gradient(180deg, #070b20 0%, #10163a 50%, #1c2148 100%);
+  --sky-glow: radial-gradient(circle at 84% 9%, rgba(226,232,255,.35) 0, rgba(190,205,255,.12) 7%, transparent 26%);
+  --sky-detail: var(--stars);
+  --sky-fallback: #10163a;
 }
 
-main { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 14px; }
+body {
+  margin: 0;
+  background-color: var(--sky-fallback);
+  background-image: var(--sky-detail), var(--sky-glow), var(--sky);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  /* 시간대가 넘어갈 때 색이 툭 튀지 않게 */
+  transition: background-color 1.5s ease;
+  color: var(--ink);
+  font: 400 var(--fs-4)/1.65 var(--sans);
+  /* 한글은 띄어쓰기 단위로만 줄을 바꾼다 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  min-height: 100vh;
+}
 
+/* 화면 왼쪽 가장자리의 5px 세로 서명 토막 (밤·여명·아침) (정체성 서명, 작게) */
+body::before {
+  content: "";
+  position: fixed;
+  left: 0; top: 96px;
+  width: 5px; height: 84px;
+  background: linear-gradient(180deg,
+    var(--id-night) 0 26px, transparent 26px 29px,
+    var(--id-dawn) 29px 55px, transparent 55px 58px,
+    var(--id-morning) 58px 84px);
+  pointer-events: none;
+}
+
+/* ── 상단 막대 (어두운 바탕 1) ── */
+.status {
+  position: relative;
+  height: 38px;
+  background: var(--dark);
+  color: var(--on-dark);
+  border-top: 3px solid var(--accent);
+  font: 400 var(--fs-2)/1 var(--mono);
+  letter-spacing: var(--ls-code);
+  text-transform: uppercase;
+}
+.status::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 180px; height: 2px;
+  background: var(--id-strip);
+}
+.status .wrap {
+  max-width: var(--app-w);
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 var(--s-4);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  white-space: nowrap;
+}
+.status .rule { flex: 1; height: 1px; background: var(--on-dark-3); }
+.status .meter { color: var(--on-dark-2); }
+/* 지금 시각에서 계산한 하늘 시간대. sky.js가 붙이는 data-sky를 그대로 읽는다 */
+.status .sky::before { content: "● "; color: var(--signal-on-dark); }
+.status .sky::after { content: "SKY / DAY"; }
+:root[data-sky="night"] .status .sky::after { content: "SKY / NIGHT"; }
+:root[data-sky="dawn"] .status .sky::after { content: "SKY / DAWN"; }
+:root[data-sky="morning"] .status .sky::after { content: "SKY / MORNING"; }
+:root[data-sky="dusk"] .status .sky::after { content: "SKY / DUSK"; }
+
+/* ── 배치 ── */
+.page {
+  max-width: var(--app-w);
+  margin: 0 auto;
+  padding: var(--s-5) var(--s-4) var(--s-7);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+main { width: 100%; display: flex; flex-direction: column; gap: var(--s-3); }
+
+/* ── 카드: 각진 모서리, 오른쪽 위 하나만 14px 깎는다 ── */
 .card {
-  background: var(--card);
+  position: relative;
+  background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 20px;
+  padding: 18px;
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+}
+/* 깎인 자리에 1px 사선 */
+.card::after {
+  content: "";
+  position: absolute;
+  top: -1px; right: -1px;
+  width: 15px; height: 15px;
+  background: linear-gradient(45deg, transparent calc(50% - .5px), var(--line-strong) calc(50% - .5px) calc(50% + .5px), transparent calc(50% + .5px));
+  pointer-events: none;
 }
 
 .card.center { text-align: center; }
 
-h1 { margin: 4px 0 0; font-size: 24px; font-weight: 600; line-height: 1.3; }
+/* ── 글자 ── */
+h1 {
+  margin: var(--s-1) 0 0;
+  font-size: var(--fs-6);
+  font-weight: 700;
+  line-height: 1.3;
+}
 p { margin: 0; }
-.muted { color: var(--muted); font-size: 13px; }
-.big { font-size: 26px; font-weight: 600; margin-top: 2px; }
+.muted { color: var(--ink-2); font-size: var(--fs-3); }
 .right { text-align: right; }
 
-.row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+/* 이중 제목: 작은 영문 코드 줄 [NN] / NAME + 한국어 이름 */
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+  margin: 0 0 var(--s-2);
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--ink);
+}
+.code-line {
+  font: 400 var(--fs-1)/1.4 var(--mono);
+  letter-spacing: var(--ls-head);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+/* 장 번호 블록: 라임 면 + 먹색 글자. 오른쪽 아래 6px 깎음 */
+.code-line .no {
+  display: inline-block;
+  padding: 1px 5px;
+  margin-right: 6px;
+  background: var(--accent);
+  color: var(--accent-on);
+  font-weight: 500;
+  letter-spacing: var(--ls-code);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+}
+p.code-line { margin-bottom: var(--s-2); }
+.head .ko { font-size: var(--fs-3); font-weight: 600; color: var(--ink); }
 
-.weather { text-align: right; font-size: 14px; color: var(--muted); white-space: nowrap; }
-.weather strong { display: block; font-size: 22px; color: var(--text); font-weight: 600; }
+/* 소제목(카드 안의 작은 라벨) */
+.label {
+  display: block;
+  font: 400 var(--fs-1)/1.4 var(--mono);
+  letter-spacing: var(--ls-head);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.label .ko { font-family: var(--sans); letter-spacing: 0; text-transform: none; font-size: var(--fs-3); color: var(--ink-2); margin-left: var(--s-2); }
+/* 영문 라벨 없이 한국어만 있으면 그 카드의 제목이다. 아래 설명 글과 구분되게 굵고 진하게 */
+.label.solo .ko { margin-left: 0; font-size: var(--fs-4); font-weight: 600; color: var(--ink); }
 
-form { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
-label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); flex: 1; }
-.note { color: var(--muted); font-size: 12px; margin-top: 14px; line-height: 1.5; }
+/* 계기 숫자 (readout): 큰 고정폭 숫자 */
+.big {
+  font: 500 var(--fs-6)/1.2 var(--mono);
+  margin-top: 2px;
+  color: var(--ink);
+}
+
+.row { display: flex; justify-content: space-between; align-items: center; gap: var(--s-3); }
+
+.weather { text-align: right; font-size: var(--fs-3); color: var(--ink-2); white-space: nowrap; }
+.weather strong { display: block; font: 500 var(--fs-6)/1.2 var(--mono); color: var(--ink); }
+
+/* ── 입력 ── */
+form { display: flex; flex-direction: column; gap: var(--s-3); margin-top: var(--s-4); }
+label { display: flex; flex-direction: column; gap: var(--s-1); font-size: var(--fs-3); color: var(--ink-2); flex: 1; }
+.note { color: var(--ink-2); font-size: var(--fs-3); margin-top: var(--s-4); line-height: 1.6; }
 
 input {
   font: inherit;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--card);
-  color: var(--text);
+  font-size: var(--fs-4);
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 0;
+  background: var(--plate);
+  color: var(--ink);
   width: 100%;
+  transition: border-color var(--t-fast) var(--ease);
 }
-input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent); }
+input[type="time"] { font-family: var(--mono); }
+input:focus { outline: none; border-color: var(--signal); box-shadow: 0 0 0 2px var(--signal-ring); }
+input:focus-visible { outline: var(--focus); outline-offset: 0; }
+@media (pointer: coarse) { input { min-height: var(--ctl-h); } }
 
+/* ── 버튼: 보조 버튼(.btn) 문법. 각진 모서리, 1px 테두리, 마우스를 올리면 먹색 ── */
 button {
-  font: inherit;
-  font-weight: 500;
-  padding: 11px 18px;
-  border: 1px solid var(--accent);
-  border-radius: 8px;
-  background: var(--accent);
-  color: var(--on-accent);
+  font: 500 var(--fs-3)/1 var(--sans);
+  min-height: var(--ctl-h);
+  padding: 0 var(--s-3);
+  border: 1px solid var(--line-strong);
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--ink);
   cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), transform var(--t-press) var(--ease);
 }
-button:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
-button:disabled { opacity: .5; cursor: not-allowed; }
+button:hover:not(:disabled) { background: var(--ink); border-color: var(--ink); color: var(--on-dark); }
+button:active:not(:disabled) { transform: translateY(1px); }
+/* 지금 조건 때문에 못 누름: 흐리게 + 점선 */
+button:disabled { opacity: .45; border-style: dashed; cursor: not-allowed; }
 
-button.ghost { background: transparent; color: var(--muted); border-color: var(--line); }
-button.ghost:hover { background: var(--badge-absent-bg); color: var(--text); }
-button.small { padding: 7px 12px; font-size: 13px; }
+/* 폼 제출 버튼은 먹색 테두리로 한 단계 강조. 면을 칠하지는 않는다 */
+button[type="submit"] { border-color: var(--ink); }
 
-button.primary { width: 100%; padding: 18px; font-size: 18px; font-weight: 600; }
+button.ghost { border-color: var(--line-strong); }
+button.small { min-height: var(--ctl-h); font-size: var(--fs-3); padding: 0 var(--s-2); }
 
-.result { margin-top: 14px; font-size: 15px; font-weight: 500; }
-.result.success { color: var(--accent-dark); }
-.result.fail { color: var(--fail); }
+/* 이 앱의 주 동작(출석). 크게 칠하지 않고 높이와 먹색 테두리로만 무게를 준다 */
+button.primary {
+  width: 100%;
+  min-height: 56px;
+  font-size: var(--fs-5);
+  font-weight: 700;
+  border: 1px solid var(--ink);
+  border-bottom-width: 3px;
+}
 
-.error { color: var(--fail); font-size: 13px; margin-top: 8px; }
+/* ── 결과 / 오류: 색만으로 알리지 않고 기호를 함께 ── */
+.result { margin-top: var(--s-3); font-size: var(--fs-4); font-weight: 600; }
+.result.success { color: var(--ink); }
+.result.success::before { content: "■ "; }
+.result.fail { color: var(--error); }
+.result.fail::before { content: "○ "; }
 
-.recent { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-direction: column; gap: 8px; }
-.recent li { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px; }
-.badge { font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 999px; }
-.badge.success { background: var(--badge-success-bg); color: var(--badge-success-fg); }
-.badge.fail { background: var(--badge-fail-bg); color: var(--badge-fail-fg); }
-.badge.absent { background: var(--badge-absent-bg); color: var(--muted); }
+.error { color: var(--error); font-size: var(--fs-3); margin-top: var(--s-2); }
+.error::before { content: "○ "; }
 
-.leaderboard { padding-left: 0; margin: 12px 0 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
-.leaderboard li { display: flex; gap: 10px; align-items: baseline; padding: 8px 12px; border-radius: 8px; font-size: 14px; }
-.leaderboard li.me { background: var(--me-bg); font-weight: 500; }
-.leaderboard .rank { color: var(--muted); font-size: 13px; min-width: 24px; }
-.leaderboard .streak { margin-left: auto; color: var(--muted); }
-.leaderboard .empty { color: var(--muted); font-size: 14px; padding: 8px 12px; }
+/* ── 최근 3일: 데이터 시트 줄 + 모양으로 구분하는 상태 태그 ── */
+.recent { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
+.recent li {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: var(--s-2) 0;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-3);
+}
+.recent li:last-child { border-bottom: 0; }
 
-footer { max-width: 480px; width: 100%; text-align: center; }
+.badge {
+  font: 500 var(--fs-3)/1 var(--sans);
+  padding: 5px 8px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
+}
+.badge::before { font-family: var(--mono); margin-right: 5px; }
+/* ■ 확정 · ○ 실패 · 점선 없음 (명세 8절의 기호 뜻) */
+.badge.success { border-color: var(--ink); }
+.badge.success::before { content: "■"; }
+.badge.fail { border-color: var(--error); color: var(--error); }
+.badge.fail::before { content: "○"; }
+.badge.absent { border-style: dashed; color: var(--ink-2); }
+.badge.absent::before { content: "□"; }
 
-/* 복구 코드. 통째로 드래그되도록 user-select: all */
+/* ── 랭킹: 데이터 시트. 내 줄은 "현재 위치"라 파랑 선으로 표시 ── */
+.leaderboard { padding-left: 0; margin: 0; list-style: none; display: flex; flex-direction: column; }
+.leaderboard li {
+  display: flex; gap: var(--s-3); align-items: baseline;
+  padding: var(--s-2) var(--s-2);
+  border-bottom: 1px solid var(--line);
+  border-left: 2px solid transparent;
+  font-size: var(--fs-3);
+}
+.leaderboard li:last-child { border-bottom: 0; }
+.leaderboard li.me { background: var(--signal-tint); border-left-color: var(--signal); font-weight: 600; }
+.leaderboard .rank { font-family: var(--mono); color: var(--ink-3); min-width: 32px; }
+.leaderboard .streak { margin-left: auto; font-family: var(--mono); color: var(--ink); }
+/* 빈 상태: 점선 상자 */
+.leaderboard .empty {
+  color: var(--ink-2);
+  padding: var(--s-3);
+  border: 1px dashed var(--line-strong);
+  border-left: 2px solid var(--ink);
+}
+
+/* ── 복구 코드: ▸ 주석 띠 문법(--bg-sunk + 왼쪽 라임 칸) ── */
 .code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 15px;
-  letter-spacing: .5px;
-  background: var(--badge-absent-bg);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 12px;
-  margin: 12px 0 0;
+  position: relative;
+  font: 500 var(--fs-4)/1.5 var(--mono);
+  letter-spacing: var(--ls-code);
+  background: var(--bg-sunk);
+  padding: var(--s-3) var(--s-3) var(--s-3) 30px;
+  margin: var(--s-3) 0 0;
   word-break: break-all;
   user-select: all;
 }
+.code::before {
+  content: "▸";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 18px;
+  display: grid; place-items: center;
+  background: var(--accent);
+  color: var(--accent-on);
+  font-size: var(--fs-2);
+  user-select: none;
+}
 
-/* label이 flex-direction: column이라 방향을 되돌려야 체크박스가 글자 옆에 온다.
-   input의 width:100%도 여기서 풀어준다. */
-.check { display: flex; flex-direction: row; align-items: center; gap: 8px; margin: 16px 0; color: var(--muted); font-size: 13px; cursor: pointer; flex: none; }
-.check input { width: auto; margin: 0; }
+/* label이 flex-direction: column이라 방향을 되돌려야 체크박스가 글자 옆에 온다 */
+.check { display: flex; flex-direction: row; align-items: center; gap: var(--s-2); margin: var(--s-4) 0; color: var(--ink-2); font-size: var(--fs-3); cursor: pointer; flex: none; }
+.check input { width: auto; min-height: 0; margin: 0; accent-color: var(--ink); }
 
-details summary { cursor: pointer; color: var(--muted); font-size: 13px; margin-top: 16px; }
-details[open] summary { margin-bottom: 10px; }
+details summary { cursor: pointer; color: var(--ink-2); font-size: var(--fs-3); margin-top: var(--s-4); }
+details[open] summary { margin-bottom: var(--s-3); }
 
-/* 되돌릴 수 없는 동작. 실수로 누르지 않게 색으로 구분한다.
-   --fail을 배경이 아니라 글씨·테두리로 쓴다 — 어두운 테마의 --fail은 #ffa8a8이라
-   배경으로 깔고 흰 글씨를 얹으면 대비가 무너진다. .error가 쓰는 용법과 같게 맞춘다.
-   채워진 버튼이 아닌 것도 의도다. 반사적으로 누르기 어려워야 하는 버튼이다. */
-button.danger { background: transparent; color: var(--fail); border-color: var(--fail); }
-button.danger:hover { background: var(--fail); color: var(--card); }
-#danger-box summary { color: var(--fail); }
+/* 되돌릴 수 없는 동작. 오류색은 글씨·테두리로만, 점선으로 "조심"을 모양으로도 알린다 */
+button.danger { background: var(--surface); color: var(--error); border: 1px dashed var(--error); }
+button.danger:hover:not(:disabled) { background: var(--error); border-color: var(--error); color: var(--plate); }
+#danger-box summary { color: var(--error); margin-top: 0; }
 
 /* 인사말 옆에 이름 변경 버튼. h1이 길면 버튼이 아래로 내려간다 */
-.namerow { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.namerow { display: flex; align-items: baseline; gap: var(--s-3); flex-wrap: wrap; }
+
+/* ── 맨 아래 판 정보 줄: C·M·Y·K 작은 네모 4개 ── */
+.foot {
+  display: flex; align-items: center; gap: var(--s-2);
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+  font: 400 var(--fs-1)/1 var(--mono);
+  letter-spacing: var(--ls-head);
+  text-transform: uppercase;
+  border-top-color: var(--sky-rule);
+}
+/* 하늘 위에 바로 글자를 두면 여명·황혼의 밝은 지평선에서 대비가 무너진다.
+   그래서 이름표 탭(먹색 블록 + 밝은 글자, 9.8:1)에 얹어 어느 하늘에서도 같게 읽힌다.
+   네모 4개도 밤하늘에서 먹색 네모가 묻히지 않게 밝은 판 위에 둔다. */
+.foot .tag { background: var(--dark); color: var(--on-dark); padding: 5px 8px; }
+.foot .cmyk { display: inline-flex; gap: 3px; margin-left: auto; background: var(--surface); padding: 5px; }
+.foot .cmyk i { width: 8px; height: 8px; display: block; }
+.foot .cmyk i:nth-child(1) { background: var(--id-night); }
+.foot .cmyk i:nth-child(2) { background: var(--id-dawn); }
+.foot .cmyk i:nth-child(3) { background: var(--id-morning); }
+.foot .cmyk i:nth-child(4) { background: var(--id-k); }
