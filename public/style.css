@@ -450,7 +450,8 @@ p { margin: 0; }
   clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
 }
 p.code-line { margin-bottom: var(--s-2); }
-.head .ko { font-size: var(--fs-3); font-weight: 600; color: var(--ink); }
+/* 카드 제목. 영문 코드 줄이 없는 카드 제목(.label.solo)과 같은 15px로 맞춘다 */
+.head .ko { font-size: var(--fs-4); font-weight: 600; color: var(--ink); }
 
 /* 소제목(카드 안의 작은 라벨) */
 .label {
@@ -476,7 +477,7 @@ p.code-line { margin-bottom: var(--s-2); }
 .weather { text-align: right; font-size: var(--fs-3); color: var(--ink-2); white-space: nowrap; }
 /* 온도 왼쪽에 날씨 그림. 선 굵기 1.6 선 아이콘, 해·달 면만 표식 색 */
 .weather .now { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
-.weather .wx { width: 30px; height: 30px; color: var(--ink); flex: none; }
+.weather .wx { width: 24px; height: 24px; color: var(--ink); flex: none; }
 .weather .wx .fill { fill: var(--mark); }
 .weather-box { display: flex; flex-direction: column; align-items: flex-end; gap: var(--s-1); flex: none; }
 
@@ -514,7 +515,8 @@ button.chip[aria-pressed="true"] {
 }
 button.chip[aria-pressed="true"]::before { background: var(--plate); }
 
-.weather strong { display: block; font: 500 var(--fs-6)/1.2 var(--mono); color: var(--ink); }
+/* 온도는 보조 정보라 인사말 제목(24px)보다 한 단계 작게 */
+.weather strong { display: block; font: 500 var(--fs-5)/1.2 var(--mono); color: var(--ink); }
 
 /* ── 입력 ── */
 form { display: flex; flex-direction: column; gap: var(--s-3); margin-top: var(--s-4); }
@@ -548,6 +550,9 @@ button {
   background: var(--surface);
   color: var(--ink);
   cursor: pointer;
+  /* 좁은 화면에서 "새로 발급"처럼 짧은 버튼 글자가 두 줄로 꺾이지 않게 */
+  white-space: nowrap;
+  flex: none;
   transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), transform var(--t-press) var(--ease);
 }
 button:hover:not(:disabled) { background: var(--ink); border-color: var(--ink); color: var(--on-dark); }
@@ -668,20 +673,20 @@ button.danger:hover:not(:disabled) { background: var(--error); border-color: var
 .namerow { display: flex; align-items: baseline; gap: var(--s-3); flex-wrap: wrap; }
 
 
-/* ── 크레딧: 맨 아래 작은 판. 다른 카드처럼 기준선에 걸리고, 하늘 위가 아니라 밝은 면 위에 글자를 둔다 ── */
+/* ── 크레딧: 맨 아래 작은 판. 다른 카드처럼 기준선에 걸리고, 하늘 위가 아니라 밝은 면 위에 글자를 둔다
+   위계: 머리(CREDIT / 출처, 카드 제목과 같은 문법) > 항목 이름(13px 굵게, 먹색) > 내용(13px, 보조 먹색) ── */
 .credit { padding: var(--s-3) var(--s-4); margin-top: var(--s-2); }
-.credit .code-line { margin-bottom: var(--s-1); }
+.credit .head { margin-bottom: var(--s-2); }
 .credit dl {
   display: grid;
-  grid-template-columns: 48px 1fr;
-  gap: 2px var(--s-3);
+  grid-template-columns: max-content 1fr;
+  gap: var(--s-1) var(--s-4);
   margin: 0;
   font-size: var(--fs-3);
-  color: var(--ink-2);
+  line-height: 1.6;
 }
-.credit dt { font: 400 var(--fs-2)/1.9 var(--mono); letter-spacing: var(--ls-code); color: var(--ink-3); }
-.credit dt:not(:first-of-type) { font-family: var(--sans); letter-spacing: 0; }
-.credit dd { margin: 0; }
+.credit dt { font-weight: 600; color: var(--ink); }
+.credit dd { margin: 0; color: var(--ink-2); }
 .credit a { color: var(--sel); text-decoration: underline; text-decoration-color: var(--sel-ring); text-underline-offset: 3px; }
 .credit a:hover { text-decoration-color: var(--sel); }
 
