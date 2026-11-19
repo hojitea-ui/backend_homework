@@ -463,12 +463,14 @@ p.code-line { margin-bottom: var(--s-2); }
 }
 .label .ko { font-family: var(--sans); letter-spacing: 0; text-transform: none; font-size: var(--fs-3); color: var(--ink-2); margin-left: var(--s-2); }
 /* 영문 라벨 없이 한국어만 있으면 그 카드의 제목이다. 아래 설명 글과 구분되게 굵고 진하게 */
+/* 카드 제목과 그 아래 줄(숫자·상태 문장) 사이를 4px 띄운다. 붙어 있으면 제목과 내용이 한 덩어리로 읽힌다 */
+.label.solo { margin-bottom: var(--s-1); }
 .label.solo .ko { margin-left: 0; font-size: var(--fs-4); font-weight: 600; color: var(--ink); }
 
 /* 계기 숫자 (readout): 큰 고정폭 숫자 */
 .big {
   font: 500 var(--fs-6)/1.2 var(--mono);
-  margin-top: 2px;
+  margin: var(--s-1) 0;
   color: var(--ink);
 }
 
@@ -700,3 +702,5 @@ button.danger:hover:not(:disabled) { background: var(--error); border-color: var
 .month-note { margin-top: var(--s-2); }
 
 .rank-note { margin-top: var(--s-2); }
+/* 성공 시간 안내와 규칙 안내는 다른 이야기라 한 줄 띄운다 */
+.rule-hint { margin-top: var(--s-1); }
