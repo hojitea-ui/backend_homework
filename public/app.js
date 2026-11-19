@@ -211,7 +211,7 @@ $('check-in').addEventListener('click', async () => {
   } catch (err) {
     if (err.status === 401) return showLogin();
     // '아직 이르다' 같은 거절은 다시 누를 수 있는 일시적인 안내라 잠시 보여 주고 거둔다
-    setResult(err.message, 'fail', 5000);
+    setResult(err.message, 'fail', 3000);
     // 버튼 상태는 DB의 오늘 기록을 보고 다시 결정한다.
     // '너무 이르다'고 거절된 경우엔 아침에 다시 누를 수 있어야 하므로 잠그면 안 된다.
     await renderUser();
