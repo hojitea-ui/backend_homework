@@ -145,7 +145,7 @@ checkIn(3, at('2026-04-11', '08:00')); // 실패
 checkIn(3, at('2026-04-13', '06:00')); // 성공
 
 const m1 = monthSummary(3, at('2026-04-13', '09:00'));
-check('가입일부터 센다, 오늘 출석했으면 오늘 포함', m1.success === 2 && m1.days === 4 && m1.from === '2026-04-10',
+check('첫 출석일부터 센다, 오늘 출석했으면 오늘 포함', m1.success === 2 && m1.days === 4 && m1.from === '2026-04-10',
   JSON.stringify(m1));
 
 const m2 = monthSummary(3, at('2026-04-14', '05:00'));
@@ -159,6 +159,20 @@ checkIn(3, at('2026-05-01', '06:00'));
 const m4 = monthSummary(3, at('2026-05-01', '07:00'));
 check('지난달 성공은 이번 달에 섞이지 않는다', m4.success === 1 && m4.days === 1 && m4.from === '2026-05-01',
   JSON.stringify(m4));
+
+// 미리 가입해 두고 며칠 뒤 시작해도 그 사이가 결석으로 잡히지 않는다 (3월 20일 가입, 4월 5일 첫 출석)
+db.prepare("INSERT INTO users (id, nickname, created_at) VALUES (4, 'early', '2026-03-20 22:00:00')").run();
+db.prepare("INSERT INTO user_settings (user_id, goal_time) VALUES (4, '06:30')").run();
+const m5 = monthSummary(4, at('2026-04-03', '09:00'));
+check('한 번도 출석 안 했으면 0/0', m5.success === 0 && m5.days === 0, JSON.stringify(m5));
+
+checkIn(4, at('2026-04-05', '06:00'));
+const m6 = monthSummary(4, at('2026-04-05', '09:00'));
+check('가입일이 아니라 첫 출석일부터 센다', m6.success === 1 && m6.days === 1 && m6.from === '2026-04-05',
+  JSON.stringify(m6));
+
+const m7 = monthSummary(4, at('2026-04-07', '05:00'));
+check('첫 출석 뒤의 결석은 센다', m7.success === 1 && m7.days === 2, JSON.stringify(m7));
 
 console.log('');
 console.log(failed === 0 ? '전체 통과' : `${failed}개 실패`);
