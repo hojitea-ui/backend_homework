@@ -535,6 +535,10 @@ async function renderLeaderboard() {
 }
 
 async function start() {
+  // 로그인 전이면 /me를 부르지 않고 바로 가입 화면으로(401 콘솔 오류를 남기지 않게)
+  const { signed_in: signedIn } = await api('/session');
+  if (!signedIn) return showLogin();
+
   $('login').hidden = true;
   $('app').hidden = false;
 

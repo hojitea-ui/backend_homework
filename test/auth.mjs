@@ -82,6 +82,11 @@ try {
   const post = await b('/api/me/attendance', { method: 'POST' });
   check('쿠키 없이 출석 체크 -> 401', post.status === 401);
 
+  const anon = await b('/api/session');
+  check('쿠키 없이 /api/session -> 200 + signed_in false', anon.status === 200 && anon.data.signed_in === false);
+  const mineSession = await a('/api/session');
+  check('가입한 기기는 signed_in true', mineSession.status === 200 && mineSession.data.signed_in === true);
+
   // 예전에는 /api/users/:id로 아무 id나 조회할 수 있었다 (IDOR)
   const idor = await b(`/api/users/${signup.data.id}`);
   check('예전 IDOR 경로 -> 404', idor.status === 404);
@@ -164,6 +169,8 @@ try {
   const gone = await doomed('/api/me', { method: 'DELETE', body: { nickname: '지울사람' } });
   check('닉네임이 맞으면 -> 204', gone.status === 204);
   check('삭제 후 같은 쿠키로 /me -> 401', (await doomed('/api/me')).status === 401);
+  const afterDelete = await doomed('/api/session');
+  check('삭제 후 /api/session은 200 + false', afterDelete.status === 200 && afterDelete.data.signed_in === false);
   check('삭제되면 복구 코드도 무효', (await device()('/api/recover', { method: 'POST', body: { code: code2 } })).status === 401);
   check('닉네임이 다시 풀린다', (await device()('/api/signup', { method: 'POST', body: { nickname: '지울사람' } })).status === 201);
 

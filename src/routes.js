@@ -169,6 +169,14 @@ router.post('/signup', (req, res) => {
   res.status(201).json({ ...publicUser(q.byId.get(id)), recovery_code: code });
 });
 
+// 로그인 여부만 확인. 처음 화면을 열 때 쓴다.
+// 로그인 전이 정상 상태인데 /me를 바로 부르면 401이 나고, 브라우저는 그걸 콘솔에 오류로 찍는다.
+// 그래서 항상 200으로 답하고 결과만 알려 준다. 세션은 있는데 계정이 지워진 경우도 false.
+router.get('/session', (req, res) => {
+  const userId = req.session?.userId;
+  res.json({ signed_in: Boolean(userId && q.byId.get(userId)) });
+});
+
 router.get('/me', requireSession, (req, res) => {
   const user = me(req);
   // 적용 날짜가 된 예정 목표를 먼저 반영해야 화면의 목표·출석 창이 판정과 맞는다

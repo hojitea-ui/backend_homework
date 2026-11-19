@@ -27,7 +27,9 @@
   <h1>오늘도 하루를<br>시작해볼까요?</h1>
   <p class="muted">닉네임은 랭킹에 공개돼요. 실명 대신 별명을 써 주세요.</p>
   <form id="login-form">
-    <input id="nickname" type="text" placeholder="닉네임" maxlength="20" autocomplete="off" required>
+    <label>닉네임
+      <input id="nickname" type="text" placeholder="예: 갓생지망생" maxlength="20" autocomplete="off" required>
+    </label>
     <button type="submit" class="primary">시작하기</button>
   </form>
   <p id="login-error" class="error" hidden></p>
@@ -36,7 +38,9 @@
   <details id="recover-box">
     <summary>전에 쓰던 기록 불러오기 (복구 코드)</summary>
     <form id="recover-form">
-      <input id="recovery-input" type="text" placeholder="복구 코드를 붙여넣으세요" autocomplete="off" required>
+      <label>복구 코드
+        <input id="recovery-input" type="text" placeholder="가입할 때 받은 코드를 붙여넣으세요" autocomplete="off" required>
+      </label>
       <button type="submit">기록 불러오기</button>
     </form>
     <p id="recover-error" class="error" hidden></p>
