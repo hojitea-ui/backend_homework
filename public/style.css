@@ -718,3 +718,15 @@ button.chip { justify-content: center; }
 .card.center .code-line { text-align: left; }
 /* 목표 시간 변경 예정: 내일부터 적용되는 값 */
 .goal-next { margin-top: var(--s-1); color: var(--sel); font-weight: 600; }
+
+/* ── 출석 버튼: 화면에서 유일하게 칠한 버튼(먹색 면 + 밝은 글자, 아래 3px 표식 색 밑면) ──
+   표식 색은 작은 표식 전용이라 면 전체에는 쓰지 않고 밑면에만. 출석을 마치면 .done으로 테두리만 남는다 */
+button.primary:not(.done) {
+  background: var(--ink);
+  color: var(--on-dark);
+  border-color: var(--ink);
+  border-bottom: 3px solid var(--mark);
+}
+button.primary:not(.done):hover:not(:disabled) { background: var(--ink-2); border-color: var(--ink-2); border-bottom-color: var(--mark); }
+button.primary:not(.done):disabled { opacity: .45; }
+.checkin-window { margin-top: var(--s-2); }

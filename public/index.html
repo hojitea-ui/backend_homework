@@ -113,10 +113,18 @@
     </form>
   </header>
 
+  <section class="card center">
+    <p class="code-line"><span class="no">[02]</span>/ CHECK-IN</p>
+    <!-- 이 앱에서 매일 누르는 단 하나의 버튼. 그래서 화면에서 유일하게 칠한 버튼이고, 인사말 바로 아래에 둔다 -->
+    <button id="check-in" class="primary">출석 체크</button>
+    <p class="muted checkin-window" id="checkin-window"></p>
+    <p id="check-result" class="result" hidden></p>
+  </section>
+
   <section class="card">
     <div class="row">
       <div>
-        <p class="code-line"><span class="no">[02]</span>/ GOAL</p>
+        <p class="code-line"><span class="no">[03]</span>/ GOAL</p>
         <p class="label solo"><span class="ko">목표 하루 시작 시간</span></p>
         <p class="big" id="goal-display"></p>
         <p class="goal-next" id="goal-next" hidden></p>
@@ -135,12 +143,6 @@
       </div>
       <p id="settings-error" class="error" hidden></p>
     </form>
-  </section>
-
-  <section class="card center">
-    <p class="code-line"><span class="no">[03]</span>/ CHECK-IN</p>
-    <button id="check-in" class="primary">출석 체크</button>
-    <p id="check-result" class="result" hidden></p>
   </section>
 
   <section class="card">

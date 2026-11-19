@@ -355,6 +355,9 @@ async function renderUser() {
   // 하한선은 서버가 EARLY_CHECKIN_WINDOW_MINUTES로 계산한 값을 그대로 쓴다.
   const { earliest } = user.checkin_window;
   $('window-hint').textContent = `${earliest} ~ ${goal} 사이에 누르면 성공`;
+  // 출석 버튼이 목표 카드보다 위로 올라가서, 버튼 바로 아래에도 같은 창을 보여 준다
+  $('checkin-window').textContent = `${earliest} ~ ${goal} 사이에 누르면 성공`;
+  $('checkin-window').hidden = Boolean(user.today);
 
   $('edit-nickname').value = user.nickname;
   $('name-form').hidden = true;
