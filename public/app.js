@@ -237,16 +237,21 @@ function showCodePanel(code) {
   $('code-copied').hidden = true;
 }
 
-$('code-copy').addEventListener('click', async () => {
+// 복구 코드 복사. 가입 직후 화면과 재발급 화면이 같이 쓴다.
+async function copyCode(sourceId, statusId) {
+  const status = $(statusId);
   try {
-    await navigator.clipboard.writeText($('code-value').textContent);
-    $('code-copied').hidden = false;
+    await navigator.clipboard.writeText($(sourceId).textContent);
+    status.textContent = '복사했어요';
   } catch {
-    // 클립보드 권한이 없거나 http라 막힌 경우. 직접 드래그하면 되므로 조용히 넘어간다.
-    $('code-copied').textContent = '직접 복사해 주세요';
-    $('code-copied').hidden = false;
+    // 클립보드 권한이 없거나 http라 막힌 경우. 코드 칸은 통째로 선택되므로 직접 복사하면 된다.
+    status.textContent = '직접 복사해 주세요';
   }
-});
+  status.hidden = false;
+}
+
+$('code-copy').addEventListener('click', () => copyCode('code-value', 'code-copied'));
+$('recovery-copy').addEventListener('click', () => copyCode('recovery-new', 'recovery-copied'));
 
 // 저장했다고 표시해야 넘어갈 수 있다. 한 번 지나가면 다시 못 보는 값이라 여기서 붙잡는다.
 $('code-saved').addEventListener('change', () => {
@@ -284,7 +289,8 @@ $('recovery-regen').addEventListener('click', async () => {
   try {
     const { recovery_code: code } = await api('/me/recovery-code', { method: 'POST' });
     $('recovery-new').textContent = code;
-    $('recovery-new').hidden = false;
+    $('recovery-copied').hidden = true;
+    $('recovery-new-box').hidden = false;
     $('recovery-status').textContent = '새 코드를 발급했어요. 저장해 주세요.';
   } catch (err) {
     if (err.status === 401) return showLogin();
@@ -310,7 +316,7 @@ $('delete-form').addEventListener('submit', async (e) => {
     $('delete-confirm').value = '';
     $('danger-box').open = false;
     $('check-result').hidden = true;
-    $('recovery-new').hidden = true;
+    $('recovery-new-box').hidden = true;
     showLogin();
   } catch (err) {
     if (err.status === 401) return showLogin();
@@ -383,7 +389,7 @@ async function renderUser() {
     $('check-result').hidden = true;
   }
 
-  $('recovery-new').hidden = true;
+  $('recovery-new-box').hidden = true;
   $('recovery-error').hidden = true;
   $('recovery-status').textContent = user.has_recovery_code
     ? '발급되어 있어요. 코드는 다시 볼 수 없고 새로 발급만 됩니다.'
