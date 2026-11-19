@@ -394,8 +394,8 @@ async function renderUser() {
     $('check-in').disabled = false;
     $('check-in').classList.remove('done');
     $('check-in').textContent = '출석 체크';
-    // 복구로 다른 사용자가 들어왔을 때 앞사람의 출석 메시지가 남지 않게 지운다
-    $('check-result').hidden = true;
+    // 결과 문구는 여기서 지우지 않는다. '아직 이르다'고 거절된 뒤에도 renderUser를
+    // 다시 부르므로, 여기서 지우면 안내문이 뜨자마자 사라진다.
   }
 
   $('recovery-new-box').hidden = true;
@@ -541,6 +541,8 @@ async function start() {
 
   $('login').hidden = true;
   $('app').hidden = false;
+  // 복구로 다른 사용자가 들어왔을 때 앞사람의 출석 메시지가 남지 않게 지운다
+  $('check-result').hidden = true;
 
   // 랭킹에서 내 줄을 강조하려면 닉네임이 필요하므로 사용자 정보를 먼저 받는다.
   await renderUser();
