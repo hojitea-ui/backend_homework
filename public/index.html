@@ -28,7 +28,7 @@
   <p class="muted">닉네임은 랭킹에 공개돼요. 실명 대신 별명을 써 주세요.</p>
   <form id="login-form">
     <input id="nickname" type="text" placeholder="닉네임" maxlength="20" autocomplete="off" required>
-    <button type="submit">시작하기</button>
+    <button type="submit" class="primary">시작하기</button>
   </form>
   <p id="login-error" class="error" hidden></p>
   <p class="note">가입하면 복구 코드를 드려요. 저장해 두면 브라우저 기록을 지우거나 기기를 바꿔도 기록을 되찾을 수 있어요.</p>
@@ -48,7 +48,7 @@
   <h1>복구 코드를<br>저장해 주세요</h1>
   <p class="muted">이 코드가 있으면 브라우저 기록을 지우거나 다른 기기에서 열어도 기록을 되찾을 수 있어요.</p>
   <p class="code" id="code-value"></p>
-  <div class="row">
+  <div class="row copy-row">
     <button id="code-copy" class="ghost small" type="button">복사</button>
     <span class="muted" id="code-copied" hidden>복사했어요</span>
   </div>
@@ -191,7 +191,7 @@
     <!-- 재발급 직후에만 보인다. 옛 코드는 이미 무효라 여기서 놓치면 안 되므로 가입 때와 같은 복사 버튼과 안내를 둔다 -->
     <div id="recovery-new-box" hidden>
       <p class="code" id="recovery-new"></p>
-      <div class="row">
+      <div class="row copy-row">
         <button id="recovery-copy" class="ghost small" type="button">복사</button>
         <span class="muted" id="recovery-copied" hidden>복사했어요</span>
       </div>
