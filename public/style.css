@@ -336,6 +336,38 @@ p.code-line { margin-bottom: var(--s-2); }
 .row { display: flex; justify-content: space-between; align-items: center; gap: var(--s-3); }
 
 .weather { text-align: right; font-size: var(--fs-3); color: var(--ink-2); white-space: nowrap; }
+.weather-box { display: flex; flex-direction: column; align-items: flex-end; gap: var(--s-1); flex: none; }
+
+/* 날씨 지역 버튼: [LOC] 서울 지역 변경
+   보조 버튼 문법 그대로라 눌리는 물건이란 게 보이고, "지역 변경"을 선 색으로 적어 할 일을 말해 준다 */
+button.loc {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 0 var(--s-2);
+  font-size: var(--fs-3);
+  font-weight: 600;
+}
+.loc .loc-code {
+  font: 500 var(--fs-1)/1 var(--mono);
+  letter-spacing: var(--ls-code);
+  color: var(--ink-3);
+  padding: 2px 4px;
+  border: 1px solid var(--line);
+}
+.loc .loc-cta { font-weight: 400; color: var(--signal-ink); border-bottom: 1px solid var(--signal-ring); }
+button.loc:hover:not(:disabled) .loc-code { color: var(--on-dark-2); border-color: var(--on-dark-3); }
+button.loc:hover:not(:disabled) .loc-cta { color: var(--on-dark); border-bottom-color: var(--on-dark-3); }
+button.loc[aria-expanded="true"] { border-color: var(--ink); background: var(--bg-sunk); }
+
+/* 켜고 끄는 칩: 글자 앞 6px 네모. 고른 칩은 살구 면 + 먹색 테두리, 네모가 채워진다 */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+button.chip { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
+button.chip::before { content: ""; width: 6px; height: 6px; border: 1px solid currentColor; }
+button.chip[aria-pressed="true"] {
+  background: var(--accent); color: var(--accent-on); border-color: var(--ink);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+}
+button.chip[aria-pressed="true"]::before { background: var(--accent-on); }
+
 .weather strong { display: block; font: 500 var(--fs-6)/1.2 var(--mono); color: var(--ink); }
 
 /* ── 입력 ── */

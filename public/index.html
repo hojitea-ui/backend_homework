@@ -66,7 +66,14 @@
           <button id="edit-name" class="ghost small" type="button">이름 변경</button>
         </div>
       </div>
-      <div id="weather" class="weather"></div>
+      <div class="weather-box">
+        <div id="weather" class="weather"></div>
+        <!-- 지역을 바꿀 수 있다는 걸 날씨 바로 아래에서 보여 준다.
+             예전엔 '목표 시간'의 [변경] 안에 숨어 있어서 있는 줄도 몰랐다. -->
+        <button id="edit-location" class="loc" type="button" aria-expanded="false" aria-controls="location-form">
+          <span class="loc-code">LOC</span><span id="location-label"></span><span class="loc-cta">지역 변경</span>
+        </button>
+      </div>
     </div>
 
     <form id="name-form" hidden>
@@ -78,6 +85,28 @@
         <button type="button" id="cancel-name" class="ghost">취소</button>
       </div>
       <p id="name-error" class="error" hidden></p>
+    </form>
+
+    <form id="location-form" hidden>
+      <p class="label">LOCATION<span class="ko">날씨를 볼 지역</span></p>
+      <div class="chips" role="group" aria-label="자주 쓰는 지역">
+        <button type="button" class="chip" data-place="서울" aria-pressed="false">서울</button>
+        <button type="button" class="chip" data-place="부산" aria-pressed="false">부산</button>
+        <button type="button" class="chip" data-place="인천" aria-pressed="false">인천</button>
+        <button type="button" class="chip" data-place="대구" aria-pressed="false">대구</button>
+        <button type="button" class="chip" data-place="대전" aria-pressed="false">대전</button>
+        <button type="button" class="chip" data-place="광주" aria-pressed="false">광주</button>
+        <button type="button" class="chip" data-place="제주" aria-pressed="false">제주</button>
+      </div>
+      <label>직접 입력 (시·구·동 이름)
+        <input id="location-name" type="text" maxlength="20" placeholder="예: 강남구, 수원, 춘천" autocomplete="off" required>
+      </label>
+      <p class="muted" id="coord-hint"></p>
+      <div class="row">
+        <button type="submit" id="save-location">저장</button>
+        <button type="button" id="cancel-location" class="ghost">취소</button>
+      </div>
+      <p id="location-error" class="error" hidden></p>
     </form>
   </header>
 
@@ -94,8 +123,6 @@
 
     <form id="settings-form" hidden>
       <label>목표 시간 <input id="goal-time" type="time" required></label>
-      <label>날씨 위치 <input id="location-name" type="text" maxlength="20" placeholder="예: 서울, 부산, 강남구" required></label>
-      <p class="muted" id="coord-hint"></p>
       <div class="row">
         <button type="submit" id="save-settings">저장</button>
         <button type="button" id="cancel-settings" class="ghost">취소</button>

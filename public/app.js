@@ -50,7 +50,7 @@ $('login-form').addEventListener('submit', async (e) => {
   }
 });
 
-// ── 설정 (닉네임 · 목표 시간 · 위치) ─────────
+// ── 목표 시간 ────────────────────────────────
 $('edit-settings').addEventListener('click', () => {
   $('settings-form').hidden = false;
   $('edit-settings').hidden = true;
@@ -67,30 +67,88 @@ $('settings-form').addEventListener('submit', async (e) => {
   $('settings-error').hidden = true;
 
   const goalTime = $('goal-time').value;
-  const locationName = $('location-name').value.trim();
-
   if (!goalTime) return showError($('settings-error'), '목표 시간을 입력해 주세요.');
-  if (!locationName) return showError($('settings-error'), '위치를 입력해 주세요.');
 
-  // 위치가 바뀌면 서버가 좌표를 찾아오므로 응답이 조금 걸린다.
   $('save-settings').disabled = true;
   $('save-settings').textContent = '저장 중...';
 
   try {
-    await api('/me/settings', {
-      method: 'PUT',
-      body: JSON.stringify({ goal_time: goalTime, location_name: locationName }),
-    });
+    // 서버는 빠진 항목을 현재 값으로 채운다. 지역은 따로 저장하므로 보내지 않는다.
+    await api('/me/settings', { method: 'PUT', body: JSON.stringify({ goal_time: goalTime }) });
 
     $('settings-form').hidden = true;
     $('edit-settings').hidden = false;
-    await Promise.all([renderUser(), renderWeather(), renderLeaderboard()]);
+    await Promise.all([renderUser(), renderLeaderboard()]);
   } catch (err) {
     if (err.status === 401) return showLogin();
     showError($('settings-error'), err.message);
   } finally {
     $('save-settings').disabled = false;
     $('save-settings').textContent = '저장';
+  }
+});
+
+// ── 날씨 지역 ────────────────────────────────
+// 날씨 바로 아래의 [LOC 서울 지역 변경] 버튼으로 연다. 자주 쓰는 지역은 칩으로 고르고,
+// 그 밖의 지역은 직접 입력한다. 칩은 입력칸을 채우기만 하고 저장은 [저장]이 한다.
+let myLocation = '';
+
+function syncChips() {
+  const value = $('location-name').value.trim();
+  document.querySelectorAll('#location-form .chip').forEach((chip) => {
+    chip.setAttribute('aria-pressed', String(chip.dataset.place === value));
+  });
+}
+
+function openLocationForm() {
+  $('location-form').hidden = false;
+  $('edit-location').setAttribute('aria-expanded', 'true');
+  $('location-name').value = myLocation;
+  syncChips();
+  $('location-name').focus();
+}
+
+function closeLocationForm() {
+  $('location-form').hidden = true;
+  $('edit-location').setAttribute('aria-expanded', 'false');
+  $('location-error').hidden = true;
+}
+
+$('edit-location').addEventListener('click', () => {
+  if ($('location-form').hidden) openLocationForm();
+  else closeLocationForm();
+});
+$('cancel-location').addEventListener('click', closeLocationForm);
+$('location-name').addEventListener('input', syncChips);
+
+document.querySelectorAll('#location-form .chip').forEach((chip) => {
+  chip.addEventListener('click', () => {
+    $('location-name').value = chip.dataset.place;
+    syncChips();
+  });
+});
+
+$('location-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  $('location-error').hidden = true;
+
+  const locationName = $('location-name').value.trim();
+  if (!locationName) return showError($('location-error'), '지역을 고르거나 입력해 주세요.');
+  if (locationName === myLocation) return closeLocationForm();
+
+  // 지역이 바뀌면 서버가 좌표를 찾아오므로 응답이 조금 걸린다.
+  $('save-location').disabled = true;
+  $('save-location').textContent = '찾는 중...';
+  try {
+    await api('/me/settings', { method: 'PUT', body: JSON.stringify({ location_name: locationName }) });
+    closeLocationForm();
+    await Promise.all([renderUser(), renderWeather()]);
+  } catch (err) {
+    if (err.status === 401) return showLogin();
+    showError($('location-error'), err.message);
+  } finally {
+    $('save-location').disabled = false;
+    $('save-location').textContent = '저장';
   }
 });
 
@@ -297,7 +355,8 @@ async function renderUser() {
   $('edit-name').hidden = false;
   $('name-error').hidden = true;
   $('goal-time').value = goal;
-  $('location-name').value = user.settings.location_name;
+  myLocation = user.settings.location_name;
+  $('location-label').textContent = myLocation;
   $('coord-hint').textContent =
     `현재 좌표 ${user.settings.latitude.toFixed(4)}, ${user.settings.longitude.toFixed(4)}`;
 
@@ -338,7 +397,9 @@ async function renderWeather() {
   const strong = document.createElement('strong');
   strong.textContent = temp;
   const label = document.createElement('span');
-  label.textContent = `${w.location_name} · ${w.condition}`;
+  // 지역 이름은 바로 아래 [LOC] 버튼이 보여 주므로 여기선 날씨 상태만
+  label.textContent = w.condition;
+  $('location-label').textContent = w.location_name;
 
   $('weather').append(strong, label);
 }
